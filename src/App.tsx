@@ -8,6 +8,7 @@ import Workspaces from "./pages/Workspaces"
 import Transactions from "./pages/Transactions"
 import SplitBills from "./pages/SplitBills"
 import PendingApprovals from "./pages/PendingApprovals"
+import Profile from "./pages/Profile"
 
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/transaction" element={<Transactions/>}/>
           <Route path="/split-bill" element={<SplitBills/>}/>
           <Route path="/pending-approvals" element={<PendingApprovals/>}/>
+          <Route path="/profile" element={<Profile/>}/>
         </Routes>
       </Router>
     </>

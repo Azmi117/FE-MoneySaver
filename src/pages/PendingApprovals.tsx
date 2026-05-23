@@ -47,6 +47,97 @@ const mockPendingTransactions = [
     confidence: 90,
     bg: "bg-green-100", color: "text-green-600"
   },
+  { 
+    id: 704, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
+  { 
+    id: 705, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
+  { 
+    id: 706, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
+  { 
+    id: 707, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
+  { 
+    id: 708, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
+  { 
+    id: 709, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
+  { 
+    id: 710, 
+    source: "Email Parser", 
+    sourceIcon: Mail,
+    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
+    merchant: "PT DANONE", 
+    category: "Salary", 
+    date: "16 May 2026, 10:00", 
+    amount: 1600000, 
+    type: "income", 
+    confidence: 90,
+    bg: "bg-green-100", color: "text-green-600"
+  },
 ];
 
 const formatCurrency = (amount: number) => {
