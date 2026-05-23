@@ -1,11 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  /* Ganti hex code di bawah dengan warna dari Google Stitch lu */
-  --color-primary: #2563EB; /* Contoh: Warna utama tombol/aksen */
-  --color-secondary: #64748B; /* Contoh: Warna teks sekunder */
-  --color-background: #F8FAFC; /* Contoh: Warna background halaman */
-  --color-surface: #FFFFFF; /* Contoh: Warna background card/form */
-  --color-danger: #EF4444; /* Contoh: Buat notif error/hapus */
-  --color-success: #10B981; /* Contoh: Buat notif sukses */
+  /* Warna Utama dari Palet Desain Lu */
+  --color-primary: #0EA5E9;
+  --color-secondary: #A0E9FF;
+  --color-accent: #F59E0B;
+  
+  /* Background Terang Sesuai UI */
+  --color-background: #F8FAFC; 
+  --color-surface: #FFFFFF; 
+  
+  /* Warna gelapnya kita jadiin default buat teks */
+  --color-text: #1E293B; 
+
+  /* Tambahan Semantic */
+  --color-danger: #EF4444;
+  --color-success: #10B981;
 }
