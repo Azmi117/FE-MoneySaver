@@ -1,9 +1,7 @@
-import React, { useState } from "react";
 import { 
-  LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, Settings, Wallet, 
+  LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, Wallet, 
   Home, User, Plus, Shield, Bell, LogOut, ChevronRight, Edit2, Smartphone, Key, Building
 } from "lucide-react";
-import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
 
 const Profile = () => {
