@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, Settings, Wallet, 
   Home, User, Plus, Search, Filter, ArrowUpRight, ArrowDownLeft, Check, ShoppingBag, 
-  ArrowRight, X, List, Camera, UploadCloud, FileText, Tag, Calendar, AlignLeft
+  ArrowRight, X, List, Camera, UploadCloud, FileText,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";

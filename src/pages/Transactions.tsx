@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
 import { 
   LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, Settings, Wallet, 
-  Home, User, Plus, Search, Filter, Download, Coffee, ShoppingCart, Zap, TrendingUp, 
-  Clock, MoreVertical, Trash2, Edit2, X, FileText, Camera, UploadCloud, DollarSign, Tag, Calendar, AlignLeft
+  Home, User, Plus, Search, Filter, Download, Coffee, ShoppingCart, Zap,
+  Clock, MoreVertical, Trash2, Edit2, X, FileText, Camera, UploadCloud, Tag, Calendar, AlignLeft
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 
 // Dummy Data
 const initialTransactions = [
@@ -20,7 +19,7 @@ const formatCurrency = (amount: number) => {
 };
 
 const Transactions = () => {
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions] = useState(initialTransactions);
   const [activeTab, setActiveTab] = useState("all"); 
   const [searchQuery, setSearchQuery] = useState("");
   const [actionMenuOpen, setActionMenuOpen] = useState<number | null>(null);
