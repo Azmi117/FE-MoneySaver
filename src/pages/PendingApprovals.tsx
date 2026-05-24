@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { 
-  LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, Settings, Wallet, 
-  Home, User, Plus, Search, Filter, Check, X, Clock, Edit2, AlertCircle, Mail, Scan, Save
+  CheckCircle,
+  Search, Filter, Check, X, Clock, Edit2, AlertCircle, Mail, Scan, Save
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
@@ -173,26 +173,7 @@ const PendingApprovals = () => {
   );
 
   return (
-    <div className="h-screen w-full bg-background flex overflow-hidden relative">
-      
-      {/* SIDEBAR (DESKTOP) */}
-      <aside className="hidden lg:flex w-64 flex-col bg-surface border-r border-gray-100 shadow-sm z-30 shrink-0">
-        <div className="h-20 flex items-center px-6 border-b border-gray-100 gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white"><Wallet size={18} /></div>
-          <h1 className="font-bold text-lg text-text">Money Saver</h1>
-        </div>
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><LayoutDashboard size={20} /> Dashboard</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><Briefcase size={20} /> Workspaces</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><Receipt size={20} /> Transactions</button>
-          <button className="flex items-center gap-3 px-4 py-3 bg-blue-50 text-primary rounded-xl font-semibold transition-colors">
-            <CheckCircle size={20} /> Pending Approvals
-          </button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><CreditCard size={20} /> Split Bills</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium mt-auto"><Settings size={20} /> Settings</button>
-        </nav>
-      </aside>
-
+    <>
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
@@ -341,25 +322,7 @@ const PendingApprovals = () => {
           </div>
         </div>
       )}
-
-      {/* BOTTOM NAV (MOBILE) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full bg-surface border-t border-gray-100 px-6 py-3 pb-safe z-30 flex justify-between items-center shadow-[0_-4px_20px_-15px_rgba(0,0,0,0.1)]">
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><Home size={24} /><span className="text-[10px] font-semibold">Home</span></button>
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><Receipt size={24} /><span className="text-[10px] font-semibold">History</span></button>
-        <div className="relative -top-6">
-          <button className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-            <Plus size={28} />
-          </button>
-        </div>
-        <button className="flex flex-col items-center gap-1 text-primary relative focus:outline-none">
-          <CheckCircle size={24} />
-          {pendingList.length > 0 && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span></span>}
-          <span className="text-[10px] font-semibold">Pending</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><User size={24} /><span className="text-[10px] font-semibold">Profile</span></button>
-      </nav>
-
-    </div>
+    </>
   );
 };
 

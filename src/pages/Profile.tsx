@@ -1,48 +1,13 @@
 import { 
-  LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, Wallet, 
-  Home, User, Plus, Shield, Bell, LogOut, ChevronRight, Edit2, Smartphone, Key, Building
+    Shield, Bell, ChevronRight, Edit2, Smartphone, Key, Building
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 const Profile = () => {
   return (
-    <div className="h-screen w-full bg-background flex overflow-hidden relative">
-      
-      {/* SIDEBAR (DESKTOP) */}
-      <aside className="hidden lg:flex w-64 flex-col bg-surface border-r border-gray-100 shadow-sm z-30 shrink-0">
-        <div className="h-20 flex items-center px-6 border-b border-gray-100 gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white"><Wallet size={18} /></div>
-          <h1 className="font-bold text-lg text-text">Money Saver</h1>
-        </div>
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><LayoutDashboard size={20} /> Dashboard</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><Briefcase size={20} /> Workspaces</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><Receipt size={20} /> Transactions</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors">
-            <CheckCircle size={20} /> Pending Approvals
-          </button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium transition-colors"><CreditCard size={20} /> Split Bills</button>
-          
-          <div className="my-2 border-t border-gray-100"></div>
-          
-          {/* NAVLINK ACTIVE - PROFILE */}
-          <button className="flex items-center gap-3 px-4 py-3 bg-blue-50 text-primary rounded-xl font-semibold transition-colors">
-            <User size={20} /> Profile
-          </button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium mt-auto"><LogOut size={20} /> Logout</button>
-        </nav>
-      </aside>
-
+    <>
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/30">
-        
-        {/* HEADER */}
-        <header className="bg-surface lg:bg-transparent px-6 py-5 border-b border-gray-100 lg:border-none flex items-center justify-between z-20 shrink-0">
-          <div>
-            <h1 className="text-2xl font-bold text-text">My Profile</h1>
-            <p className="text-xs text-gray-500 hidden lg:block">Manage your personal information and application settings</p>
-          </div>
-        </header>
 
         {/* CONTENT CONTAINER */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 pb-28 lg:pb-10 w-full max-w-4xl mx-auto block">
@@ -168,29 +133,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
-
-      {/* BOTTOM NAV (MOBILE) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full bg-surface border-t border-gray-100 px-6 py-3 pb-safe z-30 flex justify-between items-center shadow-[0_-4px_20px_-15px_rgba(0,0,0,0.1)]">
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><Home size={24} /><span className="text-[10px] font-semibold">Home</span></button>
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><Receipt size={24} /><span className="text-[10px] font-semibold">History</span></button>
-        <div className="relative -top-6">
-          <button className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-            <Plus size={28} />
-          </button>
-        </div>
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none">
-          <CheckCircle size={24} />
-          <span className="text-[10px] font-semibold">Pending</span>
-        </button>
-        {/* NAVLINK MOBILE ACTIVE - PROFILE */}
-        <button className="flex flex-col items-center gap-1 text-primary focus:outline-none relative">
-          <User size={24} />
-          <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span></span>
-          <span className="text-[10px] font-semibold">Profile</span>
-        </button>
-      </nav>
-
-    </div>
+    </>
   );
 };
 

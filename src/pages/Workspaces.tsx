@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { 
   Briefcase, Plus, Users, UserPlus, Trash2, Edit2, Shield, ChevronRight,
-  LayoutDashboard, Receipt, CheckCircle, CreditCard, Settings, Wallet, Home, User, Send, Copy, Unplug, X
+  Settings, Send, Copy, Unplug, X
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
@@ -129,24 +129,7 @@ const Workspaces = () => {
   );
 
   return (
-    <div className="h-screen w-full bg-background flex overflow-hidden relative">
-      
-      {/* SIDEBAR (DESKTOP) */}
-      <aside className="hidden lg:flex w-64 flex-col bg-surface border-r border-gray-100 shadow-sm z-30">
-        <div className="h-20 flex items-center px-6 border-b border-gray-100 gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white"><Wallet size={18} /></div>
-          <h1 className="font-bold text-lg text-text">Money Saver</h1>
-        </div>
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium"><LayoutDashboard size={20} /> Dashboard</button>
-          <button className="flex items-center gap-3 px-4 py-3 bg-blue-50 text-primary rounded-xl font-semibold"><Briefcase size={20} /> Workspaces</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium"><Receipt size={20} /> Transactions</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium"><CheckCircle size={20} /> Pending</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium"><CreditCard size={20} /> Split Bills</button>
-          <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium mt-auto"><Settings size={20} /> Settings</button>
-        </nav>
-      </aside>
-
+    <>
       {/* MAIN */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <header className="bg-surface lg:bg-background/80 lg:backdrop-blur-md px-6 py-5 border-b border-gray-100 flex items-center justify-between z-20">
@@ -216,16 +199,7 @@ const Workspaces = () => {
         </div>
       )}
 
-      {/* BOTTOM NAV */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full bg-surface border-t border-gray-100 px-6 py-3 pb-safe z-30 flex justify-between items-center shadow-[0_-4px_20px_-15px_rgba(0,0,0,0.1)]">
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><Home size={24} /><span className="text-[10px] font-semibold">Home</span></button>
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><Receipt size={24} /><span className="text-[10px] font-semibold">History</span></button>
-        <div className="relative -top-6"><button className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg"><Plus size={28} /></button></div>
-        <button className="flex flex-col items-center gap-1 text-gray-400 focus:outline-none"><CreditCard size={24} /><span className="text-[10px] font-semibold">Split Bill</span></button>
-        <button className="flex flex-col items-center gap-1 text-primary focus:outline-none"><User size={24} /><span className="text-[10px] font-semibold">Profile</span></button>
-      </nav>
-
-    </div>
+    </>
   );
 };
 
