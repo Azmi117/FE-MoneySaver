@@ -6,138 +6,14 @@ import {
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
 
-// --- MOCK DATA (Sesuai Logic Backend: Email Parser & OCR) ---
+// --- MOCK DATA ---
 const mockPendingTransactions = [
-  { 
-    id: 701, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Pembayaran QRIS Mandiri Rp55.000 ke MCDONALDS", 
-    merchant: "McDonald's", 
-    category: "Food & Beverage", 
-    date: "23 May 2026, 12:30", 
-    amount: -55000, 
-    type: "expense", 
-    confidence: 95, 
-    bg: "bg-blue-100", color: "text-blue-600"
-  },
-  { 
-    id: 702, 
-    source: "OCR Scanner", 
-    sourceIcon: Scan,
-    raw_text: "TOTAL Rp 150.000 PLN TOKEN", 
-    merchant: "PLN (Token Listrik)", 
-    category: "Bills", 
-    date: "22 May 2026, 09:15", 
-    amount: -150000, 
-    type: "expense", 
-    confidence: 65, 
-    bg: "bg-purple-100", color: "text-purple-600"
-  },
-  { 
-    id: 703, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.500.000 dari PT ARTHA IT", 
-    merchant: "PT ARTHA IT", 
-    category: "Salary", 
-    date: "15 May 2026, 10:00", 
-    amount: 1500000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 704, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 705, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 706, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 707, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 708, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 709, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
-  { 
-    id: 710, 
-    source: "Email Parser", 
-    sourceIcon: Mail,
-    raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", 
-    merchant: "PT DANONE", 
-    category: "Salary", 
-    date: "16 May 2026, 10:00", 
-    amount: 1600000, 
-    type: "income", 
-    confidence: 90,
-    bg: "bg-green-100", color: "text-green-600"
-  },
+  { id: 701, source: "Email Parser", sourceIcon: Mail, raw_text: "Pembayaran QRIS Mandiri Rp55.000 ke MCDONALDS", merchant: "McDonald's", category: "Food & Beverage", date: "23 May 2026, 12:30", amount: -55000, type: "expense", confidence: 95, bg: "bg-blue-100", color: "text-blue-600" },
+  { id: 702, source: "OCR Scanner", sourceIcon: Scan, raw_text: "TOTAL Rp 150.000 PLN TOKEN", merchant: "PLN (Token Listrik)", category: "Bills", date: "22 May 2026, 09:15", amount: -150000, type: "expense", confidence: 65, bg: "bg-purple-100", color: "text-purple-600" },
+  { id: 703, source: "Email Parser", sourceIcon: Mail, raw_text: "Transfer Mandiri Rp1.500.000 dari PT ARTHA IT", merchant: "PT ARTHA IT", category: "Salary", date: "15 May 2026, 10:00", amount: 1500000, type: "income", confidence: 90, bg: "bg-green-100", color: "text-green-600" },
+  { id: 704, source: "Email Parser", sourceIcon: Mail, raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", merchant: "PT DANONE", category: "Salary", date: "16 May 2026, 10:00", amount: 1600000, type: "income", confidence: 90, bg: "bg-green-100", color: "text-green-600" },
+  { id: 705, source: "Email Parser", sourceIcon: Mail, raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", merchant: "PT DANONE", category: "Salary", date: "16 May 2026, 10:00", amount: 1600000, type: "income", confidence: 90, bg: "bg-green-100", color: "text-green-600" },
+  { id: 706, source: "Email Parser", sourceIcon: Mail, raw_text: "Transfer Mandiri Rp1.600.000 dari PT DANONE", merchant: "PT DANONE", category: "Salary", date: "16 May 2026, 10:00", amount: 1600000, type: "income", confidence: 90, bg: "bg-green-100", color: "text-green-600" },
 ];
 
 const formatCurrency = (amount: number) => {
@@ -177,34 +53,48 @@ const PendingApprovals = () => {
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
-        {/* HEADER */}
-        <header className="bg-surface lg:bg-background/80 lg:backdrop-blur-md px-6 py-5 border-b border-gray-100 lg:border-none flex items-center justify-between z-20 shrink-0">
-          <div>
-            <h1 className="text-2xl font-bold text-text">Pending Approvals</h1>
-            <p className="text-xs text-gray-500 hidden lg:block">Review automated entries from Email Parser and OCR Scanner</p>
-          </div>
-          {pendingList.length > 0 && (
-            <Button onClick={handleApproveAll} className="hidden sm:flex py-2 px-5 rounded-xl text-xs gap-1.5 font-bold shadow-sm bg-success hover:bg-green-600 text-white border-none">
-              <CheckCircle size={16} /> Approve All ({pendingList.length})
-            </Button>
-          )}
-        </header>
-
-        {/* CONTENT CONTAINER: (FIX) Dibuat jadi block biasa, hapus flex biar gak nyusut */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-6 pt-2 pb-28 lg:pb-10 w-full max-w-6xl mx-auto block">
+        {/* FIX: Outer Wrapper. Di Web (lg) overflow-nya disembunyiin biar kotak luar gak bisa di scroll. Di Mobile tetep scrollable. */}
+        <div className="flex-1 p-3 sm:p-6 pt-4 lg:pt-8 pb-28 lg:pb-10 w-full max-w-6xl mx-auto flex flex-col overflow-y-auto lg:overflow-hidden">
           
-          {/* FIX: Tambahin shrink-0 dan h-auto biar kotak putih bebas melar ke bawah */}
-          <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden w-full shrink-0 h-auto">
+          {/* ========================================== */}
+          {/* MOBILE ONLY (< 640px): Tombol di Luar Kotak */}
+          {/* ========================================== */}
+          {/* <div className="flex sm:hidden justify-center mb-3 px-1 shrink-0">
+            {pendingList.length > 0 && (
+              <Button onClick={handleApproveAll} className="w-full flex py-3 px-5 rounded-xl text-xs gap-1.5 font-bold shadow-sm bg-success hover:bg-green-600 text-white border-none justify-center">
+                <CheckCircle size={16} /> Approve All ({pendingList.length})
+              </Button>
+            )}
+          </div> */}
+
+          {/* Kotak Putih Utama (Lingkaran Merah Lu) */}
+          {/* FIX: Di Web (lg), tinggi dibikin mentok ke bawah (flex-1) dan scrollbar muncul di dalem sini (overflow-y-auto) */}
+          <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm flex flex-col w-full shrink-0 h-auto lg:shrink lg:flex-1 lg:min-h-0 overflow-hidden lg:overflow-y-auto relative">
             
             {/* Toolbar */}
-            <div className="p-4 sm:p-6 border-b border-gray-50 flex flex-col sm:flex-row items-center gap-4 justify-between w-full">
+            {/* Bonus UX: Di Web, toolbar ini nempel di atas (sticky) biar lu gampang ngetik search pas lagi scroll list */}
+            <div className="p-4 sm:p-6 border-b border-gray-50 flex flex-col sm:flex-row items-center gap-4 justify-between w-full lg:sticky lg:top-0 lg:z-10 bg-surface">
+              
+              {/* Kiri: Search Bar */}
               <div className="relative w-full sm:w-80 shrink-0">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input type="text" placeholder="Search raw text or merchant..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary" />
               </div>
-              <button className="p-2.5 border border-gray-200 rounded-xl text-gray-500 bg-white hover:text-primary hover:border-primary flex items-center gap-2 text-xs font-bold shrink-0">
-                <Filter size={16} /> <span className="hidden sm:inline">Filter Source</span>
-              </button>
+              
+              {/* Kanan: Filter & Approve All */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <button className="py-2.5 px-4 border border-gray-200 rounded-xl text-gray-500 bg-white hover:text-primary hover:border-primary flex items-center justify-center gap-2 text-xs font-bold w-full sm:w-auto shrink-0 transition-colors">
+                  <Filter size={16} /> <span>Filter</span>
+                </button>
+
+                {/* DESKTOP ONLY: Tombol di Dalam Kotak */}
+                {pendingList.length > 0 && (
+                  <Button onClick={handleApproveAll} className="sm:flex w-full sm:w-auto py-2.5 px-5 rounded-xl text-xs gap-1.5 font-bold shadow-sm bg-success hover:bg-green-600 text-white border-none shrink-0 justify-center">
+                    <CheckCircle size={16} /> Approve All ({pendingList.length})
+                  </Button>
+                )}
+              </div>
+
             </div>
 
             {/* List */}

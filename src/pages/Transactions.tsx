@@ -97,32 +97,34 @@ const Transactions = () => {
 
   return (
     <>
-
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
-        {/* HEADER */}
-        <header className="bg-surface lg:bg-background/80 lg:backdrop-blur-md px-6 py-5 border-b border-gray-100 lg:border-none flex items-center justify-between z-20">
-          <div>
-            <h1 className="text-2xl font-bold text-text">Transaction History</h1>
-            <p className="text-xs text-gray-500 hidden lg:block">View, filter, and manage your financial records</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="hidden lg:flex py-2 px-4 rounded-xl text-xs gap-1.5 font-bold border-gray-200 text-gray-600 bg-white">
-              <Download size={16} /> Export
-            </Button>
-            {/* TRIGGER MODAL DI DESKTOP */}
-            <Button onClick={() => setShowAddModal(true)} className="py-2 px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
-              <Plus size={16} /> <span className="hidden sm:inline">Add Record</span>
-            </Button>
-          </div>
-        </header>
+        {/* Ruang kosong di atas list untuk menjaga jarak estetika tanpa judul besar */}
+        <div className="lg:flex justify-center">
+            <div className="px-4 lg:w-3/4 sm:px-6 pt-4 sm:pt-6 pb-0 flex items-center justify-end gap-4 sm:gap-4">
+                {/* Tombol Export (Style Outline Asli) */}
+                <Button variant="outline" className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold border-gray-200 text-gray-600 bg-white">
+                  <Download size={16} /> <span className="hidden sm:inline">Export</span>
+                </Button>
+                
+                {/* Tombol Add Record (Style Solid Primary Asli) */}
+                <Button onClick={() => setShowAddModal(true)} className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
+                  <Plus size={16} /> <span className="hidden sm:inline">Add Record</span>
+                </Button>
+
+            </div>
+        </div>
+        <div className="px-4 sm:px-6 pt-2 pb-4">
+            {/* FIX: Tombol Action (Export & Add Record) di Pojok Kanan Atas dalam kotak putih, style dikembalikan ke semula */}
+        </div>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto p-6 pt-2 pb-28 lg:pb-10 w-full max-w-6xl mx-auto">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-28 lg:pb-10 w-full max-w-6xl mx-auto">
           <div className="bg-surface rounded-3xl border border-gray-100 shadow-sm flex flex-col min-h-full">
             
-            {/* Toolbar */}
+
+            {/* Toolbar: Filter tabs, search, dll */}
             <div className="p-4 sm:p-6 border-b border-gray-50 flex flex-col sm:flex-row items-center gap-4 justify-between">
               <div className="flex items-center bg-gray-50 p-1 rounded-xl border border-gray-100 w-full sm:w-auto overflow-x-auto">
                 {["all", "income", "expense"].map((tab) => (

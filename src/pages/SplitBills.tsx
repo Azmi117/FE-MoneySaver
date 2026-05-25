@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { 
-  CheckCircle,Plus, Search, Filter, ArrowUpRight, ArrowDownLeft, Check, ShoppingBag, 
+  CheckCircle, Plus, Search, Filter, ArrowUpRight, ArrowDownLeft, Check, ShoppingBag, 
   ArrowRight, X, List, Camera, UploadCloud, FileText,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -108,20 +108,12 @@ const SplitBills = () => {
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
-        {/* HEADER */}
-        <header className="bg-surface lg:bg-background/80 lg:backdrop-blur-md px-6 py-5 border-b border-gray-100 lg:border-none flex items-center justify-between z-20">
-          <div>
-            <h1 className="text-2xl font-bold text-text">
-              {view === "list" ? "Split Bills & Debts" : "Itemized Split Bill"}
-            </h1>
-            <p className="text-xs text-gray-500 hidden lg:block">
-              {view === "list" ? "Track who owes you and what you owe others" : "Assign transaction items to specific members"}
-            </p>
-          </div>
+        {/* FIX: Header kosong buat ngasih space, dipisah logic posisinya antara Mobile & Desktop */}
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 w-full max-w-6xl mx-auto flex items-center justify-end lg:justify-start">
           
           {view === "list" && (
-            // TOMBOL INI KHUSUS BUAT SELECT TRANSACTION (SPLIT BILL)
-            <Button onClick={() => setView("split_tx")} className="py-2 px-3 sm:px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
+            // FIX: Desktop di kiri (justify-start ngikut parent lg:justify-start), Mobile di kanan (justify-end)
+            <Button onClick={() => setView("split_tx")} className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
               <List size={16} /> <span className="hidden sm:inline">Select Transaction</span>
             </Button>
           )}
@@ -131,10 +123,10 @@ const SplitBills = () => {
                <X size={16}/> Cancel
             </Button>
           )}
-        </header>
+        </div>
 
         {/* CONTENT CONTAINER */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 pb-28 lg:pb-10 w-full max-w-6xl mx-auto flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:px-6 pb-28 lg:pb-10 w-full max-w-6xl mx-auto flex flex-col gap-6">
           
           {/* ======================= VIEW: DEBT LIST ======================= */}
           {view === "list" && (

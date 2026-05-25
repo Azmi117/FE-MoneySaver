@@ -1,17 +1,12 @@
-import { useState } from "react";
 import { 
-  ChevronDown, Bell, TrendingUp, TrendingDown, Target,
+ TrendingUp, TrendingDown, Target,
   PieChart, Plus, Coffee, ShoppingCart, Zap, 
-  Search, CheckCircle, Clock, Briefcase
+  CheckCircle, Clock, Briefcase
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/utils/cn";
 
 // Dummy Data untuk Workspaces
-const workspaces = [
-  { id: 1, name: "Personal Workspace" },
-  { id: 2, name: "Kosan Patungan" },
-];
 
 // Dummy Data untuk Transaksi
 const recentTransactions = [
@@ -26,54 +21,11 @@ const formatCurrency = (amount: number) => {
 };
 
 const Dashboard = () => {
-  const [activeWorkspace, setActiveWorkspace] = useState(workspaces[0]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <>
       {/* ================= MAIN CONTENT AREA ================= */}
       <div className="flex-1 flex flex-col h-full overflow-y-auto relative">
-        
-        {/* HEADER */}
-        <header className="bg-surface lg:bg-background/80 lg:backdrop-blur-md px-6 py-4 lg:py-5 sticky top-0 z-20 border-b border-gray-100 lg:border-none flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">A</div>
-            <div className="flex flex-col">
-              <span className="text-xs text-gray-500 font-medium">Good morning,</span>
-              <div className="relative">
-                <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-1 text-sm font-bold text-text focus:outline-none">
-                  {activeWorkspace.name} <ChevronDown size={16} className={cn("transition-transform", isDropdownOpen && "rotate-180")} />
-                </button>
-                {/* Dropdown Content */}
-                {isDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-surface rounded-xl shadow-lg border border-gray-100 py-2 z-30">
-                    {workspaces.map((ws) => (
-                      <button key={ws.id} onClick={() => { setActiveWorkspace(ws); setIsDropdownOpen(false); }} className={cn("w-full text-left px-4 py-2 text-sm hover:bg-gray-50", activeWorkspace.id === ws.id ? "text-primary font-semibold" : "text-text")}>
-                        {ws.name}
-                      </button>
-                    ))}
-                    <div className="border-t border-gray-100 mt-1 pt-1">
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:text-text hover:bg-gray-50 font-medium flex items-center gap-2">
-                        <Plus size={16} /> Add Workspace
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center bg-white border border-gray-200 px-4 py-2 rounded-full w-64 shadow-sm">
-              <Search size={16} className="text-gray-400 mr-2" />
-              <input type="text" placeholder="Search..." className="bg-transparent border-none outline-none text-sm w-full" />
-            </div>
-            <button className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 relative">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-surface"></span>
-            </button>
-          </div>
-        </header>
 
         {/* DASHBOARD CONTENT */}
         <main className="p-6 max-w-6xl mx-auto w-full flex flex-col gap-6 pb-28 lg:pb-10">
@@ -198,7 +150,7 @@ const Dashboard = () => {
           </div>
 
           {/* --- WORKSPACES WIDGET START --- */}
-          <div className="mb-8">
+          <div className="lg:hidden mb-8">
             <div className="flex items-center justify-between mb-4 px-1">
               <h2 className="text-lg font-bold text-text">Your Workspaces</h2>
               <Link to="/workspaces" className="text-sm font-bold text-primary hover:underline">Manage</Link>
