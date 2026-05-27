@@ -190,11 +190,6 @@ const Dashboard = () => {
 
         </main>
       </div>
-
-      {/* ================= FLOATING BUTTON (DESKTOP) ================= */}
-      <button className="hidden lg:flex fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full items-center justify-center shadow-lg shadow-primary/40 hover:bg-primary/90 transition-all hover:scale-105 z-40">
-        <Plus size={28} />
-      </button>
     </>
   );
 };

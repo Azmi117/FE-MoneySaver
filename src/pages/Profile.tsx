@@ -1,5 +1,5 @@
 import { 
-    Shield, Bell, ChevronRight, Edit2, Smartphone, Key, Building
+  Shield, Bell, ChevronRight, Edit2, Smartphone, Key, Building, LogOut
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 
@@ -9,8 +9,8 @@ const Profile = () => {
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/30">
 
-        {/* CONTENT CONTAINER */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-2 pb-28 lg:pb-10 w-full max-w-4xl mx-auto block">
+        {/* CONTENT CONTAINER - FIX PADDING (Hapus lg:pb-10 biar natural, cukup pt-4) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-4 pb-28 lg:pb-6 w-full max-w-4xl mx-auto block">
           <div className="flex flex-col gap-6">
             
             {/* PROFILE CARD */}
@@ -130,6 +130,22 @@ const Profile = () => {
               </div>
 
             </div>
+
+            {/* ========================================== */}
+            {/* MOBILE ONLY (< 1024px): Tombol Logout      */}
+            {/* ========================================== */}
+            <div className="block lg:hidden mt-2 mb-4 px-1">
+              <Button 
+                variant="outline" 
+                className="w-full py-3.5 rounded-2xl text-sm font-bold text-danger border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                onClick={() => {
+                  alert("Logging out...");
+                }}
+              >
+                <LogOut size={18} /> Logout
+              </Button>
+            </div>
+
           </div>
         </div>
       </div>
