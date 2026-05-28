@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   TrendingUp, TrendingDown, Target,
   PieChart, Plus, Coffee, ShoppingCart, Zap, 
