@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Briefcase, Receipt, CheckCircle, CreditCard, User, LogOut, Wallet } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useLogout } from "@/hooks/useLogout";
 
 const Sidebar = () => {
   const location = useLocation();
+  const logout = useLogout();
 
   const menuItems = [
     { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
@@ -54,7 +56,7 @@ const Sidebar = () => {
           Profile
         </Link>
 
-        <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium mt-auto hover:bg-red-50 hover:text-danger transition-colors text-sm">
+        <button className="flex items-center gap-3 px-4 py-3 text-gray-500 rounded-xl font-medium mt-auto hover:bg-red-50 hover:text-danger transition-colors text-sm" onClick={logout}>
           <LogOut size={20} /> Logout
         </button>
       </nav>
