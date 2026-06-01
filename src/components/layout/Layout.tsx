@@ -6,6 +6,9 @@ import BottomNav from "./BottomNav";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
 
+// IMPORT ZUSTAND STORE
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -13,11 +16,11 @@ interface LayoutProps {
 // MOCK DATA HASIL SCAN (Buat state review)
 const mockScannedData = {
   merchant: "Starbucks Coffee",
-  date: "2026-05-23", // Format input date
+  date: "2026-05-23", 
   items: [
     { id: 1, name: "Caramel Macchiato", price: 55000 },
     { id: 2, name: "Almond Croissant", price: 35000 },
-    { id: 3, name: "Jl. Sudirman No 12", price: 15000 }, // Sengaja ada item "sampah" hasil OCR
+    { id: 3, name: "Jl. Sudirman No 12", price: 15000 }, 
   ]
 };
 
@@ -25,20 +28,19 @@ const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
 };
 
+// HELPER: Buat ngambil huruf pertama dari nama Workspace
+const getInitial = (name?: string) => {
+  return name ? name.charAt(0).toUpperCase() : "W";
+};
+
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   
-  // STATE INTERAKTIF UNTUK DROPDOWN WORKSPACE
+  // ==========================================
+  // GLOBAL STATE (ZUSTAND)
+  // ==========================================
+  const { workspaces, activeWorkspace, setActiveWorkspace } = useWorkspaceStore();
   const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
-  const [activeWorkspace, setActiveWorkspace] = useState("Personal Workspace");
-
-  const workspaceList = [
-    { id: "personal", name: "Personal Workspace", plan: "Free Plan", initial: "P" },
-    { id: "kosan", name: "🏠 Kosan", plan: "Shared Plan", initial: "K" },
-    { id: "liburan", name: "✈️ Liburan", plan: "Shared Plan", initial: "L" }
-  ];
-
-  const currentWorkspace = workspaceList.find(ws => ws.name === activeWorkspace) || workspaceList[0];
 
   const showDropdownPages = ["/dashboard", "/transactions"].includes(location.pathname);
 
@@ -48,12 +50,10 @@ const Layout = ({ children }: LayoutProps) => {
   const [showGlobalOcr, setShowGlobalOcr] = useState(false);
   const [ocrMethod, setOcrMethod] = useState<"hybrid" | "alt">("hybrid");
   
-  // FIX: Tambah state "review"
   const [ocrState, setOcrState] = useState<"upload" | "scanning" | "review">("upload");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // State buat form review hasil scan
   const [scannedMerchant, setScannedMerchant] = useState("");
   const [scannedDate, setScannedDate] = useState("");
   const [scannedItems, setScannedItems] = useState<any[]>([]);
@@ -71,7 +71,6 @@ const Layout = ({ children }: LayoutProps) => {
   const handleScanReceipt = () => {
     setOcrState("scanning");
     
-    // Simulasi loading OCR API, abis itu lempar ke state 'review'
     setTimeout(() => {
       setScannedMerchant(mockScannedData.merchant);
       setScannedDate(mockScannedData.date);
@@ -103,6 +102,11 @@ const Layout = ({ children }: LayoutProps) => {
 
   const calculatedTotal = scannedItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
 
+  // Fallback variabel buat nampilin UI kalo data belum keload
+  const currentName = activeWorkspace?.name || "Loading Workspace...";
+  const currentInitial = getInitial(activeWorkspace?.name);
+  const activeWsId = activeWorkspace?.id || activeWorkspace?.ID;
+
   return (
     <div className="h-screen w-full bg-background flex overflow-hidden relative" onClick={() => setIsWorkspaceOpen(false)}>
       {/* SIDEBAR DESKTOP */}
@@ -119,46 +123,57 @@ const Layout = ({ children }: LayoutProps) => {
                 <div 
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsWorkspaceOpen(!isWorkspaceOpen);
+                    // Cegah buka dropdown kalau workspaces kosong
+                    if (workspaces.length > 0) setIsWorkspaceOpen(!isWorkspaceOpen);
                   }}
-                  className="flex items-center gap-3 cursor-pointer hover:bg-gray-100/50 lg:hover:bg-white p-2 -ml-2 rounded-2xl transition-colors"
+                  className={cn(
+                    "flex items-center gap-3 p-2 -ml-2 rounded-2xl transition-colors",
+                    workspaces.length > 0 ? "cursor-pointer hover:bg-gray-100/50 lg:hover:bg-white" : "opacity-50 cursor-not-allowed"
+                  )}
                 >
                   <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
-                    {currentWorkspace.initial}
+                    {currentInitial}
                   </div>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1">
-                      <h2 className="text-sm font-bold text-text truncate max-w-[120px] sm:max-w-[180px]">{currentWorkspace.name}</h2>
-                      <ChevronDown size={14} className={cn("text-gray-400 shrink-0 transition-transform", isWorkspaceOpen && "rotate-180")} />
+                      <h2 className="text-sm font-bold text-text truncate max-w-[120px] sm:max-w-[180px]">{currentName}</h2>
+                      {workspaces.length > 0 && (
+                        <ChevronDown size={14} className={cn("text-gray-400 shrink-0 transition-transform", isWorkspaceOpen && "rotate-180")} />
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {isWorkspaceOpen && (
+                {isWorkspaceOpen && workspaces.length > 0 && (
                   <div className="absolute left-0 mt-2 w-64 bg-surface border border-gray-100 rounded-2xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Switch Workspace</div>
                     <div className="flex flex-col max-h-60 overflow-y-auto mt-1">
-                      {workspaceList.map((ws) => (
-                        <button
-                          key={ws.id}
-                          onClick={() => {
-                            setActiveWorkspace(ws.name);
-                            setIsWorkspaceOpen(false);
-                          }}
-                          className={cn(
-                            "w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-between gap-2",
-                            activeWorkspace === ws.name ? "text-primary bg-blue-50/50 font-bold" : "text-text"
-                          )}
-                        >
-                          <div className="flex items-center gap-3 truncate">
-                            <div className="w-7 h-7 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                              {ws.initial}
+                      {workspaces.map((ws, index) => {
+                        const wsId = ws.id || ws.ID || index;
+                        const isActive = activeWsId === wsId;
+
+                        return (
+                          <button
+                            key={wsId}
+                            onClick={() => {
+                              setActiveWorkspace(ws);
+                              setIsWorkspaceOpen(false);
+                            }}
+                            className={cn(
+                              "w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-between gap-2",
+                              isActive ? "text-primary bg-blue-50/50 font-bold" : "text-text"
+                            )}
+                          >
+                            <div className="flex items-center gap-3 truncate">
+                              <div className="w-7 h-7 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                {getInitial(ws.name)}
+                              </div>
+                              <span className="truncate">{ws.name}</span>
                             </div>
-                            <span className="truncate">{ws.name}</span>
-                          </div>
-                          {activeWorkspace === ws.name && <Check size={16} className="text-primary shrink-0" />}
-                        </button>
-                      ))}
+                            {isActive && <Check size={16} className="text-primary shrink-0" />}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
