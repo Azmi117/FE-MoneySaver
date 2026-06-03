@@ -1,28 +1,40 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore"; // Sesuaikan path import-nya
 
 const ProtectedRoute = () => {
   const [status, setStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
+  
+  // Panggil fungsi dari Zustand
+  const setUser = useAuthStore((state) => state.setUser);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
 
   useEffect(() => {
-    let isMounted = true; // Biar gak update state pas komponen udah di-unmount
+    let isMounted = true;
 
     api.get('/auth/profile')
-      .then(() => {
-        if (isMounted) setStatus('authorized');
+      .then((res) => {
+        if (isMounted) {
+          // Tangkep data user dari Golang lu. 
+          // (Sesuaikan "res.data.data" dengan struktur JSON Golang lu)
+          const userData = res.data.data || res.data; 
+          setUser(userData); // Simpen ke Zustand
+          
+          setStatus('authorized');
+        }
       })
       .catch((err) => {
         if (isMounted) {
           console.error("Auth Check failed:", err);
-          setStatus('unauthorized'); // <-- Pastiin ini jalan
+          clearAuth(); // Bersihin data user kalau gagal
+          setStatus('unauthorized');
         }
       });
 
     return () => { isMounted = false; };
-  }, []);
+  }, [setUser, clearAuth]);
 
-  // Tambahin ini: Kalau stuck lebih dari 5 detik, paksa unauthorized!
   useEffect(() => {
     const timer = setTimeout(() => {
       if (status === 'loading') setStatus('unauthorized');

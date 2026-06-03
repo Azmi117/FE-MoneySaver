@@ -361,12 +361,6 @@ const Dashboard = () => {
           <div className="my-1 px-4 sm:px-6 lg:hidden">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-text">Your Workspaces</h2>
-              <button 
-                onClick={() => navigate('/workspaces')} 
-                className="text-sm font-bold text-primary hover:text-blue-700 transition-colors"
-              >
-                Manage
-              </button>
             </div>
 
             {/* CONTAINER DENGAN FIX HEIGHT & SCROLL AUTOMATIC (Kira-kira pas buat 4 card) */}
