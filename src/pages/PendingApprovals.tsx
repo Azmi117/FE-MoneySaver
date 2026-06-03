@@ -1,217 +1,334 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { 
-  CheckCircle, XCircle, Edit2, Clock, 
-  ChevronDown, ChevronUp, Receipt, Loader2, ArrowLeft, Mail
+  CheckCircle2, XCircle, Clock, Inbox, ChevronLeft, ChevronRight, 
+  CreditCard, Send, ArrowRightLeft, MessageSquare, Briefcase
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
-
-// ==========================================
-// DUMMY DATA GABUNGAN (OCR + EMAIL)
-// Nanti pas fetch, lu panggil 2 endpoint, format, lalu gabungin ke 1 state
-// ==========================================
-const dummyPendingList = [
-  {
-    id: 31,
-    source: "scan_hybrid",
-    created_at: "2026-05-15T21:19:30",
-    data: { merchant: "Unggul Mart Antasari", amount: 37000, date: "2024-10-31T19:47:00Z", method: "Cash", note: "Pembelian sambal udang...", items: [
-      { description: "FINNA ULEG SAMBAL UDANG", price: 14500, quantity: 1, total: 14500 },
-      { description: "FINNA ULEG SAMBAL BAWANG", price: 14500, quantity: 1, total: 14500 }
-    ]}
-  },
-  // INI CONTOH DATA DARI EMAIL PARSING
-  {
-    id: 99,
-    source: "email_auto", 
-    created_at: "2026-05-15T18:00:00",
-    data: { 
-      merchant: "Google Play", 
-      subject: "Pembayaran Berhasil untuk Layanan Google", // Subject email
-      amount: 25000, 
-      date: "2026-05-15T18:00:00Z",
-      method: "E-Wallet",
-      items: [] // Email biasanya gak ada detail items
-    }
-  },
-  {
-    id: 29,
-    source: "scan_hybrid",
-    created_at: "2026-05-15T20:44:30",
-    data: { merchant: "Starbucks Coffee", amount: 105000, date: "2026-05-23T08:00:00Z", method: "QRIS", note: "Morning coffee", items: [
-      { description: "Caramel Macchiato", price: 55000, quantity: 1, total: 55000 },
-      { description: "Almond Croissant", price: 50000, quantity: 1, total: 50000 },
-    ]}
-  }
-];
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-};
+import api from "@/services/api";
 
 const PendingApprovals = () => {
-  const [pendings, setPendings] = useState<any[]>([]);
+  // STATE DATA
+  const [emails, setEmails] = useState<any[]>([]);
+  const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState<number | null>(null);
 
-  useEffect(() => {
-    setPendings(dummyPendingList.slice(0, 2)); 
-  }, []);
+  // STATE MODAL APPROVAL
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [targetEmailId, setTargetEmailId] = useState<number | null>(null);
+  const [modalWorkspaceId, setModalWorkspaceId] = useState<string>("");
 
-  const handleLoadMore = () => {
+  // STATE PAGINATION
+  const [meta, setMeta] = useState({
+    page: 1,
+    limit: 10,
+    total_items: 0,
+    total_pages: 1
+  });
+
+  // 1. FETCH ALL PENDING EMAILS (GLOBAL)
+  const fetchPendingEmails = async (page: number = 1) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setPendings(prev => [...prev, ...dummyPendingList.slice(2)]);
-      setHasMore(false);
+    try {
+      const res = await api.get(`/emails/pending?page=${page}&limit=${meta.limit}`);
+      if (res.data?.data) {
+        setEmails(res.data.data);
+      } else {
+        setEmails([]);
+      }
+      
+      if (res.data?.meta) {
+        setMeta(res.data.meta);
+      }
+    } catch (error) {
+      console.error("Gagal load pending emails:", error);
+      setEmails([]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const toggleExpand = (id: number) => {
-    setExpandedId(expandedId === id ? null : id);
+  // 2. FETCH LIST WORKSPACES (Buat isi dropdown di dalam modal)
+  const fetchWorkspaces = async () => {
+    try {
+      const res = await api.get('/workspaces');
+      if (res.data?.data) {
+        setWorkspaces(res.data.data);
+      }
+    } catch (error) {
+      console.error("Gagal load daftar workspace:", error);
+    }
+  };
+
+  // LOAD DATA AWAL
+  useEffect(() => {
+    fetchPendingEmails(meta.page);
+    fetchWorkspaces();
+  }, [meta.page]);
+
+  // BUTTON ACC DI-KLIK: Buka Modal & Set Target Email
+  const openApproveModal = (emailId: number) => {
+    setTargetEmailId(emailId);
+    setShowApproveModal(true);
+    if (workspaces.length > 0) {
+      setModalWorkspaceId((workspaces[0].id || workspaces[0].ID).toString());
+    } else {
+      setModalWorkspaceId("");
+    }
+  };
+
+  // SUBMIT APPROVAL DARI MODAL
+  const handleConfirmApprove = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetEmailId || !modalWorkspaceId) return;
+
+    setIsActionLoading(targetEmailId);
+    try {
+      await api.post(`/emails/${targetEmailId}/approve`, {
+        workspace_id: Number(modalWorkspaceId)
+      });
+      
+      alert("Transaksi m-banking berhasil dimasukkan ke workspace pilihan lu!");
+      setShowApproveModal(false);
+      setTargetEmailId(null);
+      
+      setEmails(emails.filter(em => (em.id || em.ID) !== targetEmailId));
+      setMeta(prev => ({ ...prev, total_items: prev.total_items - 1 }));
+    } catch (error) {
+      console.error("Gagal approve email:", error);
+      alert("Gagal memproses approval transaksi.");
+    } finally {
+      setIsActionLoading(null);
+    }
+  };
+
+  // HANDLE REJECT
+  const handleReject = async (emailId: number) => {
+    const isConfirmed = window.confirm("Yakin mau mengabaikan/menolak mutasi e-banking ini?");
+    if (!isConfirmed) return;
+
+    setIsActionLoading(emailId);
+    try {
+      await api.post(`/emails/${emailId}/reject`);
+      
+      setEmails(emails.filter(em => (em.id || em.ID) !== emailId));
+      setMeta(prev => ({ ...prev, total_items: prev.total_items - 1 }));
+    } catch (error) {
+      console.error("Gagal reject email:", error);
+      alert("Gagal menolak transaksi email.");
+    } finally {
+      setIsActionLoading(null);
+    }
+  };
+
+  // HELPER BADGE METODE (QRIS, TRANSFER, TOPUP)
+  const getMethodBadge = (method: string) => {
+    const m = method?.toLowerCase() || "";
+    if (m.includes("qris")) {
+      return { label: "QRIS", className: "bg-purple-50 border-purple-200 text-purple-700", icon: <CreditCard size={14} /> };
+    }
+    if (m.includes("transfer")) {
+      return { label: "TRANSFER", className: "bg-blue-50 border-blue-200 text-blue-700", icon: <ArrowRightLeft size={14} /> };
+    }
+    if (m.includes("top") || m.includes("wallet")) {
+      return { label: "E-WALLET TOP-UP", className: "bg-orange-50 border-orange-200 text-orange-700", icon: <Send size={14} /> };
+    }
+    return { label: method?.toUpperCase() || "MUTASI", className: "bg-gray-50 border-gray-200 text-gray-700", icon: <CreditCard size={14} /> };
+  };
+
+  const formatRupiah = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background/50 relative">
-      <main className="p-4 sm:p-6 max-w-4xl mx-auto w-full flex flex-col gap-6 pb-28 lg:pb-10">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50 pt-4 lg:pt-0">
+      <div className="flex-1 flex flex-col overflow-y-auto px-4 lg:px-6 gap-6 max-w-4xl w-full mx-auto pb-20 lg:pb-10 pt-6">
         
-        {/* HEADER */}
-        <div className="flex items-center gap-4 mb-2">
-          <Link to="/dashboard" className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 text-gray-600 transition-colors">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-text flex items-center gap-2">
-              Pending Approvals 
-              <span className="bg-yellow-100 text-yellow-600 text-xs px-2.5 py-0.5 rounded-full font-bold">Needs Review</span>
-            </h1>
-            <p className="text-sm text-gray-500">Review and confirm your scanned receipts and emails.</p>
-          </div>
+        {/* HEADER PANEL */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Clock className="text-orange-500" /> Global Bank Notification Inbox
+          </h1>
+          <p className="text-xs lg:text-sm text-gray-500">
+            Daftar seluruh mutasi otomatis yang masuk via email e-banking. Pilih ACC untuk memasukkannya ke workspace pilihan lu.
+          </p>
         </div>
 
-        {/* LIST CONTAINER */}
-        <div className="flex flex-col gap-4">
-          {pendings.map((item) => {
-            const isEmail = item.source === "email_auto";
+        {/* FEED PENDING MUTASI EMAIL (KOTAK MERAH) */}
+        <div className="flex flex-col gap-4 h-[730px] overflow-y-auto pr-2 bg-transparent rounded-2xl scrollbar-thin scrollbar-thumb-gray-200">
+          {isLoading ? (
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="font-bold text-sm">Menyelaraskan kotak masuk...</p>
+            </div>
+          ) : emails.length === 0 ? (
+            <div className="h-full bg-white rounded-2xl p-10 flex flex-col items-center justify-center border border-gray-100 shadow-sm text-center">
+              <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-4">
+                <Inbox size={32} />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">Inbox Kosong</h3>
+              <p className="text-xs text-gray-500 max-w-xs mt-1">Nggak ada mutasi email baru yang ngantri. Semuanya aman terkendali cuy!</p>
+            </div>
+          ) : (
+            emails.map((email) => {
+              const emailId = email.id || email.ID;
+              const isProcessing = isActionLoading === emailId;
+              
+              const recipient = email.recipient || email.Recipient || email.merchant_name || "Transaksi Otomatis";
+              const amount = email.amount || email.Amount || email.total_expense || 0;
+              const dateStr = email.date || email.Date || email.created_at || new Date().toISOString();
+              const note = email.note || email.Note || "";
+              const paymentMethod = email.method || email.Method || "expense";
+              
+              const badge = getMethodBadge(paymentMethod);
 
-            return (
-              <div key={item.id} className="bg-surface rounded-3xl border border-gray-200 shadow-sm overflow-hidden flex flex-col transition-all hover:border-blue-200 hover:shadow-md">
-                
-                {/* Main Row */}
-                <div className="p-5 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+              return (
+                /* AMAN: Udah ditambahin shrink-0 biar card-nya kaga gepeng lagi cuy */
+                <div key={emailId} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all hover:border-primary/30 group shrink-0">
                   
-                  <div className="flex items-start gap-4">
-                    {/* ICON LOGIC: Surat buat Email, Struk buat Scan */}
-                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0", isEmail ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-primary")}>
-                      {isEmail ? <Mail size={24} /> : <Receipt size={24} />}
-                    </div>
-                    <div>
-                      {/* TITLE LOGIC */}
-                      <h3 className="font-bold text-text text-lg capitalize">
-                        {isEmail ? "Email Parsed" : item.data.merchant}
-                      </h3>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
-                        {isEmail && (
-                          <span className="text-xs text-gray-600 font-medium line-clamp-1 max-w-[250px]">
-                            Subject: {item.data.subject}
-                          </span>
-                        )}
-                        <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                          {isEmail && <span className="hidden sm:inline">•</span>}
-                          <span className="flex items-center gap-1"><Clock size={12}/> {new Date(item.data.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                          <span>•</span>
-                          <span className="uppercase tracking-wider text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
-                            {item.source.replace('_', ' ')}
-                          </span>
+                  {/* DETAIL NOTIFIKASI BANK */}
+                  <div className="flex-1 p-5 flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 bg-gray-50 text-gray-700 rounded-xl flex items-center justify-center shrink-0 border border-gray-100 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                          {badge.icon}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-gray-800 text-base truncate">{recipient}</h3>
+                          <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                            {new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto w-full mt-2 sm:mt-0">
-                    <div className="text-left sm:text-right">
-                      <p className="text-xs text-gray-500 font-bold mb-0.5">{isEmail ? "Parsed Amount" : "Scanned Total"}</p>
-                      <h4 className="font-bold text-xl text-primary">{formatCurrency(item.data.amount)}</h4>
+                      <div className="text-right shrink-0">
+                        <span className={cn("text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wide border uppercase", badge.className)}>
+                          {badge.label}
+                        </span>
+                        <p className="text-base font-bold text-red-600 mt-1.5">{formatRupiah(amount)}</p>
+                      </div>
                     </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2">
-                      <button className="p-2.5 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors bg-gray-50" title="Edit Record">
-                        <Edit2 size={18} />
-                      </button>
-                      <button className="p-2.5 text-danger hover:bg-red-50 rounded-xl transition-colors bg-gray-50" title="Reject / Delete">
-                        <XCircle size={18} />
-                      </button>
-                      <button className="p-2.5 text-white bg-success hover:bg-green-600 shadow-sm rounded-xl transition-colors flex items-center gap-2 px-4" title="Approve & Save">
-                        <CheckCircle size={18} />
-                        <span className="text-sm font-bold hidden sm:block">Approve</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Toggle Items Details (Disembunyikan kalau items kosong/gak ada) */}
-                {!isEmail && item.data.items && item.data.items.length > 0 && (
-                  <div className="border-t border-gray-50 bg-gray-50/50">
-                    <button 
-                      onClick={() => toggleExpand(item.id)}
-                      className="w-full py-2.5 px-6 flex items-center justify-center gap-2 text-xs font-bold text-gray-500 hover:text-primary hover:bg-gray-100 transition-colors"
-                    >
-                      {expandedId === item.id ? (
-                        <><ChevronUp size={14}/> Hide items detail</>
-                      ) : (
-                        <><ChevronDown size={14}/> View {item.data.items.length} items</>
-                      )}
-                    </button>
-
-                    {expandedId === item.id && (
-                      <div className="px-6 pb-5 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-                          <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 pb-2 border-b border-gray-50 flex justify-between">
-                            <span>Item Description</span>
-                            <span>Price</span>
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            {item.data.items.map((i: any, idx: number) => (
-                              <div key={idx} className="flex justify-between items-start text-sm">
-                                <span className="text-text font-medium flex-1 pr-4">{i.description} <span className="text-gray-400">x{i.quantity}</span></span>
-                                <span className="font-bold text-gray-600 whitespace-nowrap">{formatCurrency(i.total)}</span>
-                              </div>
-                            ))}
-                          </div>
+                    {/* BERITA TRANSFER / NOTE */}
+                    {note && (
+                      <div className="flex items-start gap-2 bg-gray-50/70 p-3 rounded-xl border border-gray-100/60 text-xs text-gray-600">
+                        <MessageSquare size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Berita / Catatan:</span>
+                          <p className="font-medium italic leading-relaxed">"{note}"</p>
                         </div>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
 
-        {/* FOOTER - LOAD MORE */}
-        <div className="mt-4 flex justify-center">
-          {hasMore ? (
-            <Button 
-              onClick={handleLoadMore} 
-              disabled={isLoading}
-              variant="outline"
-              className="py-3 px-8 rounded-xl font-bold text-sm bg-white text-primary border-gray-200 hover:bg-blue-50 hover:border-blue-200 shadow-sm transition-all"
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Loading data...</span>
-              ) : "Load More Pending Approvals"}
-            </Button>
-          ) : (
-            <p className="text-sm text-gray-400 font-medium py-4 flex items-center gap-2">
-              <CheckCircle size={16} className="text-success"/> You're all caught up!
-            </p>
+                  {/* TOMBOL AKSI ACC (Ijo Pastel Soft) */}
+                  <div className="bg-gray-50/50 border-t lg:border-t-0 lg:border-l border-gray-100 p-4 flex flex-row lg:flex-col items-center justify-end lg:justify-center gap-2.5 shrink-0 lg:w-44">
+                    <Button 
+                      onClick={() => openApproveModal(emailId)} 
+                      disabled={isProcessing}
+                      className="flex-1 lg:w-full bg-green-100 text-green-700 hover:bg-green-200/80 border border-green-200/60 h-10 shadow-none gap-1.5 text-xs rounded-xl font-bold transition-colors"
+                    >
+                      <CheckCircle2 size={16} /> ACC
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleReject(emailId)} 
+                      disabled={isProcessing}
+                      className="flex-1 lg:w-full text-gray-500 border-gray-200 hover:bg-red-50 hover:text-danger hover:border-red-100 h-10 bg-white gap-1.5 text-xs rounded-xl font-bold"
+                    >
+                      <XCircle size={16} /> Ignore
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
 
-      </main>
+        {/* PAGINATION PANEL */}
+        {!isLoading && emails.length > 0 && meta.total_pages > 1 && (
+          <div className="flex items-center justify-between bg-white border border-gray-100 p-4 rounded-2xl shadow-sm mt-2">
+            <span className="text-xs text-gray-500 font-semibold">
+              Page <span className="font-bold text-gray-900">{meta.page}</span> of <span className="font-bold text-gray-900">{meta.total_pages}</span>
+            </span>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                disabled={meta.page === 1 || isLoading}
+                onClick={() => setMeta({ ...meta, page: meta.page - 1 })}
+                className="p-2 h-8 w-8 rounded-lg"
+              >
+                <ChevronLeft size={14} />
+              </Button>
+              <Button 
+                variant="outline" 
+                disabled={meta.page === meta.total_pages || isLoading}
+                onClick={() => setMeta({ ...meta, page: meta.page + 1 })}
+                className="p-2 h-8 w-8 rounded-lg"
+              >
+                <ChevronRight size={14} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* ========================================== */}
+      {/* MODAL APPROVAL WORKSPACE SELECTION         */}
+      {/* ========================================== */}
+      {showApproveModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-surface rounded-3xl w-full max-w-sm p-6 shadow-xl border border-gray-100 flex flex-col gap-5 bg-white">
+            <div className="flex items-center gap-3 border-b border-gray-50 pb-3">
+              <div className="p-2 bg-green-50 text-green-600 rounded-xl">
+                <Briefcase size={20} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Assign to Workspace</h3>
+            </div>
+            
+            <form onSubmit={handleConfirmApprove} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pilih Buku Kas / Workspace</label>
+                <select 
+                  required
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none font-semibold transition-all"
+                  value={modalWorkspaceId}
+                  onChange={(e) => setModalWorkspaceId(e.target.value)}
+                >
+                  <option value="" disabled>-- Pilih Workspace Tujuan --</option>
+                  {workspaces.map(ws => (
+                    <option key={ws.id || ws.ID} value={ws.id || ws.ID}>{ws.name}</option>
+                  ))}
+                </select>
+                {workspaces.length === 0 && (
+                  <p className="text-[11px] text-red-500 mt-1">Lu belum punya workspace aktif cuy, bikin dulu di menu utama.</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end mt-2 border-t border-gray-50 pt-3">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => { setShowApproveModal(false); setTargetEmailId(null); }} 
+                  className="text-xs font-semibold"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={!modalWorkspaceId || workspaces.length === 0}
+                  className="text-xs font-bold bg-green-500 hover:bg-green-600 shadow-sm"
+                >
+                  Save Transaksi
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
