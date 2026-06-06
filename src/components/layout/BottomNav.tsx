@@ -12,7 +12,7 @@ const BottomNav = ({ onFabClick }: BottomNavProps) => {
 
   const navItems = [
     { path: "/dashboard", label: "Home", icon: Home },
-    { path: "/transactions", label: "History", icon: History },
+    { path: "/transactions", label: "Transaction", icon: History },
     // 2. Ubah path, label, dan icon di sini dari Workspaces ke Split Bill
     { path: "/split-bills", label: "Split Bill", icon: Receipt }, 
     { path: "/profile", label: "Profile", icon: User },
