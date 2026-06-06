@@ -66,4 +66,12 @@ export const authService = {
     const response = await api.get('/auth/profile');
     return response.data; // Mengambil response dari backend
   },
+
+  updateProfile: async (data: FormData) => {
+  return await api.put('/auth/profile', data, {
+    headers: { 
+      "Content-Type": "multipart/form-data" 
+    }
+  });
+},
 };

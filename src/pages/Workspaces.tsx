@@ -57,6 +57,8 @@ const Workspaces = () => {
   // STATE UI WORKSPACE
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  // STATE BARU: TIPE WORKSPACE (BUDGETING / SPLIT)
+  const [newWorkspaceType, setNewWorkspaceType] = useState<"budgeting" | "split">("budgeting");
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [renameValue, setRenameValue] = useState("");
 
@@ -153,7 +155,10 @@ const Workspaces = () => {
     e.preventDefault();
     if (!newWorkspaceName.trim()) return;
     try {
-      const res = await api.post('/workspaces', { name: newWorkspaceName });
+      const res = await api.post('/workspaces', { 
+        name: newWorkspaceName, 
+        type: newWorkspaceType // NGIRIM TIPE KE BACKEND GOLANG
+      });
       if(res.data && res.data.data) {
          setWorkspaces([...workspaces, res.data.data]);
          setSelectedId(res.data.data.id || res.data.data.ID);
@@ -163,6 +168,7 @@ const Workspaces = () => {
       }
       setShowCreateModal(false);
       setNewWorkspaceName("");
+      setNewWorkspaceType("budgeting"); // RESET TIPE
       alert("Berhasil bikin workspace!");
     } catch (error) {
       alert("Gagal bikin workspace");
@@ -334,6 +340,22 @@ const Workspaces = () => {
     return (
       <div className="flex flex-col gap-6 pb-8 lg:pb-0">
         
+        {/* PANEL HEADER TIPE WORKSPACE (BARU) */}
+        <div className="bg-surface lg:border lg:border-gray-100 rounded-2xl lg:rounded-3xl p-6 lg:shadow-sm flex items-center justify-between mb-2">
+          <div>
+            <h2 className="text-xl font-bold text-text">{ws.name}</h2>
+            <p className="text-sm text-gray-500 mt-1 capitalize flex items-center gap-2">
+              <Shield size={14} /> {isOwner ? 'owner' : 'member'}
+            </p>
+          </div>
+          <span className={cn(
+            "px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide uppercase",
+            ws.type === "split" ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-green-50 text-green-600 border border-green-100"
+          )}>
+            {ws.type === "split" ? "Split Bill" : "Budgeting"}
+          </span>
+        </div>
+
         {/* MEMBERS WIDGET */}
         <div className="bg-surface lg:border lg:border-gray-100 rounded-2xl lg:rounded-3xl lg:p-6 lg:shadow-sm flex flex-col gap-5">
           <div className="flex items-center justify-between border-b border-gray-50 pb-4">
@@ -442,7 +464,7 @@ const Workspaces = () => {
         </div>
 
         {/* ========================================== */}
-        {/* FINANCIAL SUMMARY & TARGET WIDGET (BARU!)    */}
+        {/* FINANCIAL SUMMARY & TARGET WIDGET          */}
         {/* ========================================== */}
         <div className="bg-surface lg:border lg:border-gray-100 rounded-2xl lg:rounded-3xl p-6 lg:shadow-sm mb-2">
           <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-4">
@@ -655,9 +677,19 @@ const Workspaces = () => {
                       </div>
                       <div className="min-w-0">
                         <h4 className="font-bold text-text text-base truncate">{ws.name}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5 capitalize flex items-center gap-1">
-                          <Shield size={12}/>{userRole}
-                        </p>
+                        {/* BADGE TIPE WORKSPACE DI LIST KIRI */}
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-gray-500 capitalize flex items-center gap-1">
+                            <Shield size={12}/>{userRole}
+                          </p>
+                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                          <span className={cn(
+                            "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider",
+                            ws.type === "split" ? "bg-orange-50 text-orange-600" : "bg-green-50 text-green-600"
+                          )}>
+                            {ws.type === "split" ? "Split Bill" : "Budgeting"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <ChevronRight size={18} className="text-gray-300 lg:hidden shrink-0" />
@@ -699,6 +731,38 @@ const Workspaces = () => {
             <h3 className="text-xl font-bold text-text">New Workspace</h3>
             <form onSubmit={handleCreateWorkspace} className="flex flex-col gap-4">
               <Input type="text" label="Name" placeholder="e.g. Uang Kas Kosan" value={newWorkspaceName} onChange={(e)=>setNewWorkspaceName(e.target.value)} autoFocus />
+              
+              {/* BAGIAN BARU: PILIH TIPE WORKSPACE (RADIO CARDS) */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tipe Workspace</label>
+                <div className="flex gap-3">
+                  <div
+                    onClick={() => setNewWorkspaceType("budgeting")}
+                    className={cn(
+                      "flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all",
+                      newWorkspaceType === "budgeting" 
+                        ? "border-primary bg-blue-50 text-primary" 
+                        : "border-gray-100 bg-gray-50 text-gray-400 hover:bg-gray-100 hover:border-gray-200"
+                    )}
+                  >
+                    <span className="text-sm font-bold">Budgeting</span>
+                    <span className="text-[10px] text-center font-medium mt-1">Nabung & Catat Kas</span>
+                  </div>
+                  <div
+                    onClick={() => setNewWorkspaceType("split")}
+                    className={cn(
+                      "flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all",
+                      newWorkspaceType === "split" 
+                        ? "border-orange-500 bg-orange-50 text-orange-600" 
+                        : "border-gray-100 bg-gray-50 text-gray-400 hover:bg-gray-100 hover:border-gray-200"
+                    )}
+                  >
+                    <span className="text-sm font-bold">Split Bill</span>
+                    <span className="text-[10px] text-center font-medium mt-1">Khusus Patungan</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex gap-3 justify-end mt-2">
                 <Button type="button" variant="ghost" onClick={()=>setShowCreateModal(false)} className="text-xs font-semibold">Cancel</Button>
                 <Button type="submit" className="text-xs font-bold">Create</Button>
@@ -771,7 +835,7 @@ const Workspaces = () => {
       )}
 
       {/* ========================================== */}
-      {/* MODAL SET TARGET (BARU!)                     */}
+      {/* MODAL SET TARGET                             */}
       {/* ========================================== */}
       {showTargetModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
