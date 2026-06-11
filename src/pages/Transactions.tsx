@@ -6,7 +6,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
-import api from "@/services/api";
+
+// ✨ IMPORT SERVICES BARU ✨
+import { transactionService } from "@/services/transactionService";
+import { categoryService } from "@/services/categoryService";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 // HELPER CURRENCY
@@ -15,9 +18,6 @@ const formatCurrency = (amount: number) => {
 };
 
 const Transactions = () => {
-  // ==========================================
-  // 1. ZUSTAND GLOBAL WORKSPACE (CATCH-ALL)
-  // ==========================================
   const workspaceStore: any = useWorkspaceStore();
   
   const selectedWorkspaceId = 
@@ -28,14 +28,6 @@ const Transactions = () => {
     workspaceStore?.selectedWorkspaceId || 
     workspaceStore?.currentWorkspaceId;
 
-  useEffect(() => {
-    console.log("DATA STORE DARI HEADER:", workspaceStore);
-    console.log("ID WORKSPACE YANG KETANGKAP:", selectedWorkspaceId);
-  }, [workspaceStore]);
-
-  // ==========================================
-  // 2. STATE DATA & PAGINATION
-  // ==========================================
   const [transactions, setTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,35 +35,24 @@ const Transactions = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [meta, setMeta] = useState({ page: 1, limit: 10, total_pages: 1 });
 
-  // ==========================================
-  // 3. STATE UI MODAL & ACTION
-  // ==========================================
   const [actionMenuOpen, setActionMenuOpen] = useState<number | null>(null);
   const [mobileMenuTx, setMobileMenuTx] = useState<any>(null);
   const [exportMonth, setExportMonth] = useState("");
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
   
-  // STATE MODAL DETAIL
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedTxDetail, setSelectedTxDetail] = useState<any>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
 
-  // STATE MODAL ADD
   const [showAddModal, setShowAddModal] = useState(false);
   const [addMode, setAddMode] = useState<"manual" | "ocr">("manual");
   
-  // ==========================================
-  // 4. STATE FORM MANUAL
-  // ==========================================
   const [manualForm, setManualForm] = useState({ 
     merchant: "", amount: "", categoryId: "", date: new Date().toISOString().split('T')[0], note: "", type: "expense" 
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // ==========================================
-  // 5. STATE OCR UPLOAD & REVIEW
-  // ==========================================
   const [ocrMethod, setOcrMethod] = useState<"hybrid" | "alt">("hybrid");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,19 +68,19 @@ const Transactions = () => {
   });
 
   // ==========================================
-  // FETCH TRANSACTIONS & CATEGORIES
+  // FETCH TRANSACTIONS & CATEGORIES (REFACTORED)
   // ==========================================
   const fetchTransactions = async (page: number, append = false) => {
     if (!selectedWorkspaceId) return;
     setIsLoading(true);
     try {
-      const res = await api.get(`/workspaces/${selectedWorkspaceId}/transactions?page=${page}&limit=${meta.limit}`);
-      if (res.data?.data) {
-        setTransactions(append ? [...transactions, ...res.data.data] : res.data.data);
+      const responseData = await transactionService.getHistory(selectedWorkspaceId, page, meta.limit);
+      if (responseData?.data) {
+        setTransactions(append ? [...transactions, ...responseData.data] : responseData.data);
       } else if (!append) {
         setTransactions([]);
       }
-      if (res.data?.meta) setMeta(res.data.meta);
+      if (responseData?.meta) setMeta(responseData.meta);
     } catch (error) {
       console.error("Gagal load history:", error);
     } finally {
@@ -110,8 +91,8 @@ const Transactions = () => {
   const fetchCategories = async () => {
     if (!selectedWorkspaceId) return;
     try {
-      const res = await api.get(`/workspaces/${selectedWorkspaceId}/categories`);
-      if (res.data?.data) setCategories(res.data.data);
+      const responseData = await categoryService.getByWorkspace(selectedWorkspaceId);
+      if (responseData?.data) setCategories(responseData.data);
     } catch (error) {
       console.error("Gagal load categories:", error);
     }
@@ -131,7 +112,7 @@ const Transactions = () => {
   };
 
   // ==========================================
-  // MANUAL ENTRY
+  // MANUAL ENTRY (REFACTORED)
   // ==========================================
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +129,9 @@ const Transactions = () => {
         type: manualForm.type,
         note: manualForm.note
       };
-      await api.post('/transactions/manual', payload);
+      
+      await transactionService.createManual(payload);
+      
       alert("Transaksi manual berhasil disimpan!");
       setShowAddModal(false);
       setManualForm({ merchant: "", amount: "", categoryId: "", date: new Date().toISOString().split('T')[0], note: "", type: "expense" });
@@ -161,12 +144,12 @@ const Transactions = () => {
   };
 
   // ==========================================
-  // ACTION BUTTONS (DELETE & VIEW DETAILS)
+  // ACTION BUTTONS (DELETE & VIEW DETAILS - REFACTORED)
   // ==========================================
   const handleDeleteTx = async (id: number) => {
     if (!window.confirm("Yakin mau hapus transaksi ini?")) return;
     try {
-      await api.delete(`/transactions/${id}`);
+      await transactionService.deleteTransaction(id);
       setTransactions(transactions.filter(t => (t.id || t.ID) !== id));
       setActionMenuOpen(null);
       setMobileMenuTx(null);
@@ -176,24 +159,19 @@ const Transactions = () => {
   };
 
   const handleViewDetails = async (tx: any) => {
-    // 1. Set data dasar dulu biar modal langsung kebuka & gak kerasa lemot
     setSelectedTxDetail(tx);
     setDetailModalOpen(true);
     setActionMenuOpen(null);
     setMobileMenuTx(null);
     
-    // 2. Fetching detail transaksi ke backend buat dapetin transaction_items
     const txId = tx.id || tx.ID;
     if (!txId) return;
 
     setIsDetailLoading(true);
     try {
-      // Sesuaikan URL ini kalau di routes.go lu endpoint-nya beda!
-      const res = await api.get(`/transactions/${txId}`);
-      
-      if (res.data?.data) {
-        // Timpa state modal dengan data lengkap dari backend (udah ada items-nya)
-        setSelectedTxDetail(res.data.data);
+      const responseData = await transactionService.getById(txId);
+      if (responseData?.data) {
+        setSelectedTxDetail(responseData.data);
       }
     } catch (error) {
       console.error("Gagal narik detail item transaksi:", error);
@@ -203,7 +181,7 @@ const Transactions = () => {
   };
 
   // ==========================================
-  // OCR SCAN & REVIEW
+  // OCR SCAN & REVIEW (REFACTORED)
   // ==========================================
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setReceiptFile(e.target.files[0]);
@@ -220,7 +198,7 @@ const Transactions = () => {
       return;
     }
     if (!selectedWorkspaceId) {
-      alert("Gagal nangkep ID dari Header! Coba lu cek Console Log (F12) buat liat nama state di Zustand lu apa.");
+      alert("Gagal nangkep ID dari Header!");
       return;
     }
 
@@ -228,13 +206,13 @@ const Transactions = () => {
     
     const formData = new FormData();
     formData.append(ocrMethod === "hybrid" ? "image" : "file", receiptFile);
-    formData.append("workspace_id", selectedWorkspaceId.toString());
 
     try {
-      const endpoint = ocrMethod === "hybrid" ? "/transactions/scan-hybrid2" : "/transactions/scan-alt";
-      const res = await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' }});
+      const responseData = ocrMethod === "hybrid" 
+        ? await transactionService.scanHybrid(selectedWorkspaceId, formData)
+        : await transactionService.scanAlt(selectedWorkspaceId, formData);
       
-      const { data, pending_id } = res.data;
+      const { data, pending_id } = responseData;
       setPendingOcrId(pending_id);
       
       const txData = data.transaction || data;
@@ -275,13 +253,9 @@ const Transactions = () => {
     
     setIsLoading(true);
     try {
-      const exportUrl = exportMonth 
-        ? `/workspaces/${selectedWorkspaceId}/transactions/export?month=${exportMonth}`
-        : `/workspaces/${selectedWorkspaceId}/transactions/export`;
+      const blobData = await transactionService.exportTransactions(selectedWorkspaceId, exportMonth);
 
-      const res = await api.get(exportUrl, { responseType: 'blob' });
-
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const url = window.URL.createObjectURL(new Blob([blobData], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
       
@@ -293,9 +267,8 @@ const Transactions = () => {
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      // ✨ FIX: Tutup modal setelah beres download
       setExportModalOpen(false);
-      setExportMonth(""); // Opsional: reset bulan
+      setExportMonth(""); 
     } catch (error) {
       console.error("Gagal export PDF:", error);
       alert("Gagal mengunduh laporan PDF.");
@@ -341,15 +314,12 @@ const Transactions = () => {
     }));
   };
 
-  const calculatedOcrTotal = scannedData.items.reduce((acc, curr) => acc + curr.total, 0);
-
   const handleConfirmOcr = async () => {
     if (!selectedWorkspaceId) return;
     if (!scannedData.categoryId) return alert("Pilih kategori dulu cuy buat transaksi ini!");
 
     setIsSubmitting(true);
     try {
-      // Bikin payload yang sama persis buat Hybrid dan Alt
       const payload = {
         workspace_id: selectedWorkspaceId,
         merchant: scannedData.merchant,
@@ -362,11 +332,10 @@ const Transactions = () => {
         items: scannedData.items
       };
 
-      if (ocrMethod === "hybrid") {
-        // ✨ SEKARANG PATCH-NYA NGIRIM PAYLOAD EDITAN ✨
-        await api.patch(`/transactions/${pendingOcrId}/confirm`, payload);
+      if (ocrMethod === "hybrid" && pendingOcrId) {
+        await transactionService.confirmHybrid(pendingOcrId, payload);
       } else {
-        await api.post('/transactions/scan-alt/confirm', payload);
+        await transactionService.confirmAlt(payload);
       }
       
       alert("Transaksi berhasil disimpan ke buku kas!");
@@ -394,8 +363,6 @@ const Transactions = () => {
         
         <div className="lg:flex justify-center shrink-0">
           <div className="px-4 lg:w-3/4 sm:px-6 pt-4 sm:pt-6 pb-0 flex items-center justify-end gap-4 sm:gap-4">
-              
-              {/* ✨ FIX: Tombol Export dibikin bersih lagi, cuma buat buka modal ✨ */}
               <Button onClick={() => setExportModalOpen(true)} variant="outline" className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold border-gray-200 text-gray-600 bg-white">
                 <Download size={16} /> <span className="hidden sm:inline">Export</span>
               </Button>
@@ -403,7 +370,6 @@ const Transactions = () => {
               <Button onClick={() => setShowAddModal(true)} className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
                 <Plus size={16} /> <span className="hidden sm:inline">Add Record</span>
               </Button>
-              
           </div>
         </div>
         <div className="px-4 sm:px-6 pt-2 pb-4 shrink-0"></div>
@@ -807,16 +773,13 @@ const Transactions = () => {
                 Pilih bulan laporan yang mau di-export. Kosongin kalau lu mau narik <b>semua transaksi</b> dari awal.
               </p>
               
-              {/* ✨ UI CUSTOM MONTH PICKER ✨ */}
               <div className="flex flex-col gap-3">
-                {/* Year Navigation */}
                 <div className="flex items-center justify-between bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
                   <button onClick={() => setPickerYear(p => p - 1)} className="p-2 hover:bg-white rounded-xl text-gray-400 hover:text-text transition-colors shadow-sm"><ChevronLeft size={18}/></button>
                   <span className="font-black text-text">{pickerYear}</span>
                   <button onClick={() => setPickerYear(p => p + 1)} className="p-2 hover:bg-white rounded-xl text-gray-400 hover:text-text transition-colors shadow-sm"><ChevronRight size={18}/></button>
                 </div>
 
-                {/* Month Grid */}
                 <div className="grid grid-cols-4 gap-2">
                   {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map((m, i) => {
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -840,7 +803,6 @@ const Transactions = () => {
                   })}
                 </div>
 
-                {/* Tombol Clear Filter */}
                 {exportMonth && (
                   <button onClick={() => setExportMonth("")} className="mt-2 text-xs font-bold text-danger hover:underline text-center">
                     Reset Selection (Export All)
@@ -867,7 +829,6 @@ const Transactions = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
           <div className="bg-surface rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
             
-            {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
               <h2 className="text-lg font-bold text-text flex items-center gap-2">
                 <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg"><FileText size={18}/></div>
@@ -878,10 +839,8 @@ const Transactions = () => {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6">
               
-              {/* Summary Header */}
               <div className="flex flex-col items-center justify-center text-center">
                 <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center mb-3", (selectedTxDetail.type || selectedTxDetail.Type || "").toLowerCase() === "income" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600")}>
                   {(selectedTxDetail.type || selectedTxDetail.Type || "").toLowerCase() === "income" ? <Briefcase size={32}/> : <Receipt size={32}/>}
@@ -895,7 +854,6 @@ const Transactions = () => {
                 </div>
               </div>
 
-              {/* Detail Grid */}
               <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                 <div>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Category</p>
@@ -911,7 +869,6 @@ const Transactions = () => {
                 </div>
               </div>
 
-              {/* Items List (Dirender kalau transaksinya punya items) */}
               {(() => {
                 if (isDetailLoading) {
                   return (
@@ -974,7 +931,6 @@ const Transactions = () => {
             </div>
             
             <div className="flex flex-col p-4 gap-2">
-              {/* ================= MOBILE ACTION MENU ================= */}
               <button onClick={() => handleViewDetails(mobileMenuTx)} className="flex items-center gap-3 w-full p-4 text-sm font-semibold text-text hover:bg-gray-50 rounded-2xl">
                 <FileText size={18} className="text-gray-400"/> View Details
               </button>

@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { 
   TrendingUp, TrendingDown, Target,
-  PieChart, Plus, Coffee, ShoppingCart, Zap, 
-  CheckCircle, Clock, Briefcase, ChevronRight,
+  PieChart, CheckCircle, Clock, Briefcase, ChevronRight,
   ArrowDownRight, CreditCard, X, Loader2
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
 
@@ -36,18 +35,14 @@ const Dashboard = () => {
   // ==========================================
   useEffect(() => {
     const fetchInitialWorkspaces = async () => {
-      console.log("1. Mulai fetch Workspaces...");
       try {
         const wsRes = await workspaceService.getWorkspaces();
         const wsList = wsRes.data?.data || wsRes.data || [];
-        console.log("2. Hasil fetch Workspaces:", wsList);
         
         if (Array.isArray(wsList) && wsList.length > 0) {
           setWorkspaces(wsList);
           setActiveWorkspace(wsList[0]); 
-          console.log("3. Workspace aktif diset ke ID:", wsList[0].id || wsList[0].ID);
         } else {
-          console.log("3. Gak ada workspace, matiin spinner");
           setIsDashboardLoading(false);
         }
       } catch (error) {
@@ -69,22 +64,16 @@ const Dashboard = () => {
   // ==========================================
   useEffect(() => {
     const fetchDashboardTransactions = async () => {
-      console.log("4. currentWorkspaceId sekarang:", currentWorkspaceId);
       if (!currentWorkspaceId) return; 
 
       setIsDashboardLoading(true);
       try {
-        console.log("5. Nembak API Transaksi buat Workspace ID:", currentWorkspaceId);
         const txRes = await transactionService.getHistory(currentWorkspaceId, 1, 5);
-        
         const txList = Array.isArray(txRes.data) ? txRes.data : (Array.isArray(txRes.data?.data) ? txRes.data.data : []);
-        console.log("6. Dapet data transaksi:", txList);
         
         setRecentTransactions(txList);
       } catch (error) {
-        console.error("Gagal memuat transaksi dashboard:", error);
       } finally {
-        console.log("7. Proses kelar, matiin spinner");
         setIsDashboardLoading(false);
       }
     };
@@ -228,21 +217,28 @@ const Dashboard = () => {
                     <p className="text-xs text-gray-500">Period: May 2026</p>
                   </div>
                 </div>
-                {/* Hitung persentase */}
-                <span className="text-sm font-bold text-primary">
-                  {workspaceSummary?.savings_target ? Math.round((workspaceSummary.savings_current / workspaceSummary.savings_target) * 100) : 0}%
-                </span>
               </div>
-              <div className="flex justify-between items-end mb-2 text-sm font-semibold">
-                <span className="text-text">{formatCurrency(workspaceSummary?.savings_current || 0)}</span>
-                <span className="text-gray-400 text-xs">of {formatCurrency(workspaceSummary?.savings_target || 0)}</span>
-              </div>
-              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-500" 
-                  style={{ width: `${workspaceSummary?.savings_target ? Math.min(Math.round((workspaceSummary.savings_current / workspaceSummary.savings_target) * 100), 100) : 0}%` }}
-                ></div>
-              </div>
+
+              {/* LOGIC BARU DI SINI */}
+              {workspaceSummary?.savings_target > 0 ? (
+                <>
+                  <div className="flex justify-between items-end mb-2 text-sm font-semibold">
+                    <span className="text-text">{formatCurrency(workspaceSummary?.savings_current || 0)}</span>
+                    <span className="text-gray-400 text-xs">of {formatCurrency(workspaceSummary?.savings_target || 0)}</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min(Math.round((workspaceSummary.savings_current / workspaceSummary.savings_target) * 100), 100)}%` }}
+                    ></div>
+                  </div>
+                </>
+              ) : (
+                <div className="py-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
+                  <p className="text-xs text-gray-400 mb-2">Belum ada target nabung</p>
+                  <button onClick={() => navigate('/workspaces')} className="text-xs font-bold text-primary hover:underline">Set Target</button>
+                </div>
+              )}
             </div>
 
             {/* CARD 3: BUDGET LIMIT */}
@@ -257,21 +253,28 @@ const Dashboard = () => {
                     <p className="text-xs text-gray-500">Period: May 2026</p>
                   </div>
                 </div>
-                {/* Hitung persentase */}
-                <span className="text-sm font-bold text-accent">
-                  {workspaceSummary?.budget_limit ? Math.round((workspaceSummary.budget_spent / workspaceSummary.budget_limit) * 100) : 0}%
-                </span>
               </div>
-              <div className="flex justify-between items-end mb-2 text-sm font-semibold">
-                <span className="text-text">{formatCurrency(workspaceSummary?.budget_spent || 0)} Spent</span>
-                <span className="text-gray-400 text-xs">Limit {formatCurrency(workspaceSummary?.budget_limit || 0)}</span>
-              </div>
-              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-accent rounded-full transition-all duration-500" 
-                  style={{ width: `${workspaceSummary?.budget_limit ? Math.min(Math.round((workspaceSummary.budget_spent / workspaceSummary.budget_limit) * 100), 100) : 0}%` }}
-                ></div>
-              </div>
+
+              {/* LOGIC BARU DI SINI */}
+              {workspaceSummary?.budget_limit > 0 ? (
+                <>
+                  <div className="flex justify-between items-end mb-2 text-sm font-semibold">
+                    <span className="text-text">{formatCurrency(workspaceSummary?.budget_spent || 0)} Spent</span>
+                    <span className="text-gray-400 text-xs">Limit {formatCurrency(workspaceSummary?.budget_limit || 0)}</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-accent rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min(Math.round((workspaceSummary.budget_spent / workspaceSummary.budget_limit) * 100), 100)}%` }}
+                    ></div>
+                  </div>
+                </>
+              ) : (
+                <div className="py-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
+                  <p className="text-xs text-gray-400 mb-2">Belum ada batas budget</p>
+                  <button onClick={() => navigate('/workspaces')} className="text-xs font-bold text-accent hover:underline">Set Budget</button>
+                </div>
+              )}
             </div>
 
           </div>
@@ -356,54 +359,6 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-
-          {/* ================= WORKSPACES WIDGET (MOBILE ONLY) ================= */}
-          <div className="my-1 px-4 sm:px-6 lg:hidden">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-text">Your Workspaces</h2>
-            </div>
-
-            {/* CONTAINER DENGAN FIX HEIGHT & SCROLL AUTOMATIC (Kira-kira pas buat 4 card) */}
-            {/* pr-1 ditambahin biar scrollbar bawaan HP gak numpuk/melar ke border kartu */}
-            <div className="flex flex-col gap-3 max-h-[370px] overflow-y-auto pr-1">
-              
-              {workspaces.map((ws, index) => {
-                const wsId = ws.id || ws.ID || index;
-
-                return (
-                  <div 
-                    key={wsId} 
-                    onClick={() => {
-                      navigate('/workspaces', { state: { targetWorkspaceId: wsId } }); 
-                    }}
-                    className="flex items-center justify-between p-4 bg-surface border border-gray-100 rounded-2xl shadow-sm active:scale-[0.98] hover:border-primary/50 transition-all cursor-pointer group shrink-0"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Icon Container */}
-                      <div className="w-12 h-12 rounded-full bg-blue-50 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                        <Briefcase size={20} />
-                      </div>
-                      
-                      {/* Text Info */}
-                      <div>
-                        <h3 className="font-bold text-text text-sm group-hover:text-primary transition-colors">
-                          {ws.name}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {ws.type || 'budgeting'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Chevron Indicator */}
-                    <ChevronRight size={20} className="text-gray-300 group-hover:text-primary transition-colors" />
-                  </div>
-                );
-              })}
-              
-            </div>
-          </div>
-
         </main>
       </div>
 
