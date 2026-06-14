@@ -179,15 +179,7 @@ const Layout = ({ children }: LayoutProps) => {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 sm:gap-3 shrink-0">
-                <div className="hidden lg:block relative w-60">
-                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Search..." 
-                    className="w-full bg-white border border-gray-200/80 text-xs rounded-full pl-10 pr-4 py-2.5 shadow-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-text"
-                  />
-                </div>
+              <div className="sm:hidden flex items-center gap-3 sm:gap-3 shrink-0">
 
                 <Link 
                   to="/pending-approvals" 
@@ -211,7 +203,7 @@ const Layout = ({ children }: LayoutProps) => {
         </main>
       </div>
 
-      <BottomNav onFabClick={() => setShowGlobalOcr(true)} />
+      <BottomNav />
 
       {/* ========================================== */}
       {/* MODAL GLOBAL OCR                           */}

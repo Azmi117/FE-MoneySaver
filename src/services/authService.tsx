@@ -68,10 +68,15 @@ export const authService = {
   },
 
   updateProfile: async (data: FormData) => {
-  return await api.put('/auth/profile', data, {
-    headers: { 
-      "Content-Type": "multipart/form-data" 
-    }
-  });
-},
+    return await api.put('/auth/profile', data, {
+      headers: { 
+        "Content-Type": "multipart/form-data" 
+      }
+    });
+  },
+
+  getTelegramBindingCode: async () => {
+    const response = await api.get('/auth/telegram/binding-code');
+    return response.data;
+  }
 };

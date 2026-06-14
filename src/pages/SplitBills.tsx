@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { 
-  CheckCircle, Plus, Search, Filter, ArrowUpRight, ArrowDownLeft, Check, ShoppingBag, 
-  ArrowRight, X, List, Camera, UploadCloud, FileText, Scissors, Receipt
+  CheckCircle, Search, ArrowUpRight, ArrowDownLeft, Check, ShoppingBag, 
+  ArrowRight, X, List, Scissors, Receipt
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
 import api from "@/services/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { workspaceService } from "@/services/workspaceService";
+import { debtService } from "@/services/debtService";
+import { transactionService } from "@/services/transactionService";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -59,10 +62,10 @@ const SplitBills = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // 1. Tarik list semua workspace
-      const resWs = await api.get('/workspaces');
+      // Pake workspaceService
+      const resWs = await workspaceService.getWorkspaces();
       let currentSplitWs: any[] = [];
-      const wsData = resWs.data?.data || resWs.data || [];
+      const wsData = resWs.data || [];
 
       if (Array.isArray(wsData)) {
         currentSplitWs = wsData.filter((w: any) => {
@@ -72,21 +75,16 @@ const SplitBills = () => {
         setSplitWorkspaces(currentSplitWs);
       }
 
-      // 2. Validasi apakah workspace ID yang aktif sekarang adalah tipe Split
       const isCurrentValid = currentSplitWs.some(w => String(w.id || w.ID) === String(selectedWorkspaceId));
 
-      // 3. LOGIC AUTO-SELECT 
-      // Kalau state nyangkut di workspace tipe budgeting dari halaman lain, paksa pindah ke split!
       if (!isCurrentValid) {
         if (currentSplitWs.length > 0) {
-           const defaultSplitWs = currentSplitWs[0]; // Ambil Astorien dkk
+           const defaultSplitWs = currentSplitWs[0]; 
            if (workspaceStore.setActiveWorkspace) {
-               // Update global store, lalu RETURN biar useEffect ke-trigger ulang dengan ID yang bener
                workspaceStore.setActiveWorkspace(defaultSplitWs);
                return; 
            }
         } else {
-           // Kalau emang user ini gak di-invite ke workspace split sama sekali
            setDebts([]);
            setTransactions([]);
            setIsLoading(false);
@@ -94,19 +92,19 @@ const SplitBills = () => {
         }
       }
 
-      // 4. KALO UDAH VALID (State = Astorien dll), BARU TEMBAK API DEBTS
-      const resDebts = await api.get(`/workspaces/${selectedWorkspaceId}/debts`);
-      const debtsData = resDebts.data?.data || resDebts.data || [];
+      // Pake debtService
+      const resDebts = await debtService.getWorkspaceDebts(selectedWorkspaceId);
+      const debtsData = resDebts.data || [];
       setDebts(Array.isArray(debtsData) ? debtsData : []);
 
-      // 5. Tarik Member Workspace
-      const resMembers = await api.get(`/workspaces/${selectedWorkspaceId}/members`);
-      const membersData = resMembers.data?.data || resMembers.data || [];
+      // Pake workspaceService buat member
+      const resMembers = await workspaceService.getMembers(selectedWorkspaceId);
+      const membersData = resMembers.data || [];
       setMembers(Array.isArray(membersData) ? membersData : []);
 
-      // 6. Tarik Transaksi
-      const resTx = await api.get(`/workspaces/${selectedWorkspaceId}/transactions`);
-      const txData = resTx.data?.data || resTx.data || [];
+      // Pake transactionService
+      const resTx = await transactionService.getHistory(selectedWorkspaceId, 1, 100); // Set limit gede buat nampilin semua dulu
+      const txData = resTx.data || [];
       if (Array.isArray(txData)) {
         const expenseTxs = txData.filter((tx: any) => {
           const tType = String(tx.type || tx.Type || "").toLowerCase();
@@ -210,9 +208,8 @@ const SplitBills = () => {
         }))
       };
 
-      console.log("PAYLOAD DARI REACT:", JSON.stringify(payload, null, 2));
-
-      await api.post(`/transactions/split`, payload);
+      // Pake transactionService
+      await transactionService.splitBill(payload);
       alert("Mantap! Tagihan berhasil di-split dan utang temen lu udah dicatat.");
       setView("list");
       setSelectedTx(null);
@@ -229,7 +226,8 @@ const SplitBills = () => {
   const handlePayDebt = async (debtId: number) => {
     if (!window.confirm("Yakin mau tandai lunas?")) return;
     try {
-      await api.patch(`/debts/${debtId}/pay`);
+      // Pake debtService
+      await debtService.payDebt(debtId);
       setDebts(debts.map(d => d.ID === debtId || d.id === debtId ? { ...d, is_paid: true } : d));
     } catch (error: any) {
       alert(`Gagal bayar: ${error.response?.data?.message || "Error"}`);

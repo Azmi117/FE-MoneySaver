@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { 
   CheckCircle2, XCircle, Clock, Inbox, ChevronLeft, ChevronRight, 
-  CreditCard, Send, ArrowRightLeft, MessageSquare, Briefcase
+  CreditCard, Send, ArrowRightLeft, MessageSquare, Briefcase,
+  Search, Filter
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
@@ -13,6 +14,10 @@ const PendingApprovals = () => {
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState<number | null>(null);
+  
+  // STATE SEARCH & FILTER
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState("ALL");
 
   // STATE MODAL APPROVAL
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -128,11 +133,14 @@ const PendingApprovals = () => {
     if (m.includes("qris")) {
       return { label: "QRIS", className: "bg-purple-50 border-purple-200 text-purple-700", icon: <CreditCard size={14} /> };
     }
-    if (m.includes("transfer")) {
+    if (m.includes("transfer") || m.includes("trf")) {
       return { label: "TRANSFER", className: "bg-blue-50 border-blue-200 text-blue-700", icon: <ArrowRightLeft size={14} /> };
     }
-    if (m.includes("top") || m.includes("wallet")) {
+    if (m.includes("top") || m.includes("wallet") || m.includes("pay")) {
       return { label: "E-WALLET TOP-UP", className: "bg-orange-50 border-orange-200 text-orange-700", icon: <Send size={14} /> };
+    }
+    if (m.includes("virtual") || m.includes("va")) {
+      return { label: "VIRTUAL ACCOUNT", className: "bg-teal-50 border-teal-200 text-teal-700", icon: <CreditCard size={14} /> };
     }
     return { label: method?.toUpperCase() || "MUTASI", className: "bg-gray-50 border-gray-200 text-gray-700", icon: <CreditCard size={14} /> };
   };
@@ -140,6 +148,67 @@ const PendingApprovals = () => {
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
+
+  // --- PROCESSING DATA (Parse JSON, Sort, Filter, Search) ---
+  const processedEmails = emails.map(email => {
+    // 1. Parsing raw_data dari Golang (Menangani Format String JSON)
+    let parsedData: any = {};
+    if (email.raw_data || email.RawData) {
+      try {
+        const raw = email.raw_data || email.RawData;
+        parsedData = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch (e) {
+        console.error("Gagal parse raw_data:", e);
+      }
+    }
+
+    // 2. Ekstrak data yang bener "Tahan Banting" buat nge-handle semua key Go/JSON
+    const recipient = 
+      parsedData.merchant_name || parsedData.MerchantName || parsedData.recipient || 
+      email.merchant_name || email.MerchantName || email.recipient || email.Recipient || 
+      email.title || email.Title || "Transaksi Otomatis";
+
+    const amount = 
+      parsedData.amount || parsedData.Amount || parsedData.total_expense || 
+      email.amount || email.Amount || email.total_expense || 0;
+
+    const dateStr = 
+      parsedData.date || parsedData.Date || 
+      email.date || email.Date || email.created_at || email.CreatedAt || new Date().toISOString();
+
+    const note = 
+      parsedData.note || parsedData.Note || 
+      email.note || email.Note || "";
+
+    const paymentMethod = 
+      parsedData.method || parsedData.Method || parsedData.source || 
+      email.method || email.Method || email.source || "expense";
+
+    return { ...email, recipient, amount, dateStr, note, paymentMethod, emailId: email.id || email.ID };
+  });
+
+  // 3. Urutkan dari yang terbaru (Paling atas) pakai spread syntax
+  let filteredEmails = [...processedEmails].sort((a, b) => new Date(b.dateStr).getTime() - new Date(a.dateStr).getTime());
+
+  // 4. Fitur Search Bar
+  if (searchTerm) {
+    filteredEmails = filteredEmails.filter(e => 
+      e.recipient.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  // 5. Fitur 3 Filter Button
+  if (activeFilter !== "ALL") {
+    filteredEmails = filteredEmails.filter(e => {
+      const m = e.paymentMethod.toLowerCase();
+      if (activeFilter === "QRIS") return m.includes("qris");
+      if (activeFilter === "TRANSFER") return m.includes("transfer") || m.includes("trf");
+      // UBAH BARIS INI:
+      if (activeFilter === "TOP-UP") return m.includes("top") || m.includes("wallet") || m.includes("pay");
+      if (activeFilter === "VA") return m.includes("virtual") || m.includes("va");
+      return true;
+    });
+  }
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50 pt-4 lg:pt-0">
@@ -155,6 +224,27 @@ const PendingApprovals = () => {
           </p>
         </div>
 
+        {/* SEARCH & FILTER PANEL */}
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex flex-wrap gap-2 w-full justify-evenly pb-1 md:pb-0 scrollbar-hide">
+            {/* UBAH ARRAYNYA DI SINI JADI 'TOP-UP' */}
+            {['ALL', 'QRIS', 'TRANSFER', 'TOP-UP', 'VA'].map(filter => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all",
+                  activeFilter === filter 
+                    ? "bg-primary text-white shadow-sm" 
+                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200"
+                )}
+              >
+                {filter === 'ALL' ? 'Semua' : filter === 'VA' ? 'Virtual Account' : filter}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* FEED PENDING MUTASI EMAIL (KOTAK MERAH) */}
         <div className="flex flex-col gap-4 h-[730px] overflow-y-auto pr-2 bg-transparent rounded-2xl scrollbar-thin scrollbar-thumb-gray-200">
           {isLoading ? (
@@ -162,30 +252,21 @@ const PendingApprovals = () => {
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
               <p className="font-bold text-sm">Menyelaraskan kotak masuk...</p>
             </div>
-          ) : emails.length === 0 ? (
+          ) : filteredEmails.length === 0 ? (
             <div className="h-full bg-white rounded-2xl p-10 flex flex-col items-center justify-center border border-gray-100 shadow-sm text-center">
               <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-4">
                 <Inbox size={32} />
               </div>
-              <h3 className="text-base font-bold text-gray-900">Inbox Kosong</h3>
-              <p className="text-xs text-gray-500 max-w-xs mt-1">Nggak ada mutasi email baru yang ngantri. Semuanya aman terkendali cuy!</p>
+              <h3 className="text-base font-bold text-gray-900">Kosong Cuy</h3>
+              <p className="text-xs text-gray-500 max-w-xs mt-1">Nggak ada transaksi yang cocok sama pencarian atau filter lu.</p>
             </div>
           ) : (
-            emails.map((email) => {
-              const emailId = email.id || email.ID;
-              const isProcessing = isActionLoading === emailId;
-              
-              const recipient = email.recipient || email.Recipient || email.merchant_name || "Transaksi Otomatis";
-              const amount = email.amount || email.Amount || email.total_expense || 0;
-              const dateStr = email.date || email.Date || email.created_at || new Date().toISOString();
-              const note = email.note || email.Note || "";
-              const paymentMethod = email.method || email.Method || "expense";
-              
-              const badge = getMethodBadge(paymentMethod);
+            filteredEmails.map((email) => {
+              const isProcessing = isActionLoading === email.emailId;
+              const badge = getMethodBadge(email.paymentMethod);
 
               return (
-                /* AMAN: Udah ditambahin shrink-0 biar card-nya kaga gepeng lagi cuy */
-                <div key={emailId} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all hover:border-primary/30 group shrink-0">
+                <div key={email.emailId} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all hover:border-primary/30 group shrink-0">
                   
                   {/* DETAIL NOTIFIKASI BANK */}
                   <div className="flex-1 p-5 flex flex-col gap-3">
@@ -195,9 +276,9 @@ const PendingApprovals = () => {
                           {badge.icon}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-bold text-gray-800 text-base truncate">{recipient}</h3>
+                          <h3 className="font-bold text-gray-800 text-base truncate">{email.recipient}</h3>
                           <p className="text-[11px] text-gray-400 font-medium mt-0.5">
-                            {new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {new Date(email.dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                           </p>
                         </div>
                       </div>
@@ -206,17 +287,17 @@ const PendingApprovals = () => {
                         <span className={cn("text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wide border uppercase", badge.className)}>
                           {badge.label}
                         </span>
-                        <p className="text-base font-bold text-red-600 mt-1.5">{formatRupiah(amount)}</p>
+                        <p className="text-base font-bold text-red-600 mt-1.5">{formatRupiah(email.amount)}</p>
                       </div>
                     </div>
 
                     {/* BERITA TRANSFER / NOTE */}
-                    {note && (
+                    {email.note && (
                       <div className="flex items-start gap-2 bg-gray-50/70 p-3 rounded-xl border border-gray-100/60 text-xs text-gray-600">
                         <MessageSquare size={14} className="text-gray-400 shrink-0 mt-0.5" />
                         <div className="flex flex-col">
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Berita / Catatan:</span>
-                          <p className="font-medium italic leading-relaxed">"{note}"</p>
+                          <p className="font-medium italic leading-relaxed">"{email.note}"</p>
                         </div>
                       </div>
                     )}
@@ -225,7 +306,7 @@ const PendingApprovals = () => {
                   {/* TOMBOL AKSI ACC (Ijo Pastel Soft) */}
                   <div className="bg-gray-50/50 border-t lg:border-t-0 lg:border-l border-gray-100 p-4 flex flex-row lg:flex-col items-center justify-end lg:justify-center gap-2.5 shrink-0 lg:w-44">
                     <Button 
-                      onClick={() => openApproveModal(emailId)} 
+                      onClick={() => openApproveModal(email.emailId)} 
                       disabled={isProcessing}
                       className="flex-1 lg:w-full bg-green-100 text-green-700 hover:bg-green-200/80 border border-green-200/60 h-10 shadow-none gap-1.5 text-xs rounded-xl font-bold transition-colors"
                     >
@@ -233,7 +314,7 @@ const PendingApprovals = () => {
                     </Button>
                     <Button 
                       variant="outline"
-                      onClick={() => handleReject(emailId)} 
+                      onClick={() => handleReject(email.emailId)} 
                       disabled={isProcessing}
                       className="flex-1 lg:w-full text-gray-500 border-gray-200 hover:bg-red-50 hover:text-danger hover:border-red-100 h-10 bg-white gap-1.5 text-xs rounded-xl font-bold"
                     >
