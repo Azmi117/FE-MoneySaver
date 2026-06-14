@@ -139,6 +139,9 @@ const PendingApprovals = () => {
     if (m.includes("top") || m.includes("wallet") || m.includes("pay")) {
       return { label: "E-WALLET TOP-UP", className: "bg-orange-50 border-orange-200 text-orange-700", icon: <Send size={14} /> };
     }
+    if (m.includes("virtual") || m.includes("va")) {
+      return { label: "VIRTUAL ACCOUNT", className: "bg-teal-50 border-teal-200 text-teal-700", icon: <CreditCard size={14} /> };
+    }
     return { label: method?.toUpperCase() || "MUTASI", className: "bg-gray-50 border-gray-200 text-gray-700", icon: <CreditCard size={14} /> };
   };
 
@@ -202,6 +205,7 @@ const PendingApprovals = () => {
       if (activeFilter === "TRANSFER") return m.includes("transfer") || m.includes("trf");
       // UBAH BARIS INI:
       if (activeFilter === "TOP-UP") return m.includes("top") || m.includes("wallet") || m.includes("pay");
+      if (activeFilter === "VA") return m.includes("virtual") || m.includes("va");
       return true;
     });
   }
@@ -222,9 +226,9 @@ const PendingApprovals = () => {
 
         {/* SEARCH & FILTER PANEL */}
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex gap-2 w-full justify-evenly pb-1 md:pb-0 scrollbar-hide">
+          <div className="flex flex-wrap gap-2 w-full justify-evenly pb-1 md:pb-0 scrollbar-hide">
             {/* UBAH ARRAYNYA DI SINI JADI 'TOP-UP' */}
-            {['ALL', 'QRIS', 'TRANSFER', 'TOP-UP'].map(filter => (
+            {['ALL', 'QRIS', 'TRANSFER', 'TOP-UP', 'VA'].map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -235,7 +239,7 @@ const PendingApprovals = () => {
                     : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200"
                 )}
               >
-                {filter === 'ALL' ? 'Semua' : filter}
+                {filter === 'ALL' ? 'Semua' : filter === 'VA' ? 'Virtual Account' : filter}
               </button>
             ))}
           </div>
