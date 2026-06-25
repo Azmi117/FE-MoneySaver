@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { 
-  Briefcase, Receipt, CheckCircle, Plus, Search, Filter, Download, Coffee, ShoppingCart, Zap,
-  Clock, MoreVertical, Trash2, Edit2, X, FileText, Camera, UploadCloud, Tag, Calendar, AlignLeft,
-  CircleDashed, ChevronLeft, ChevronRight
+  Briefcase, Receipt, CheckCircle, Plus, Search, Filter, Download,
+  Clock, MoreVertical, Trash2, X, FileText, Camera, UploadCloud, 
+  Tag, Calendar, AlignLeft, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
@@ -19,6 +19,8 @@ const formatCurrency = (amount: number) => {
 
 const Transactions = () => {
   const workspaceStore: any = useWorkspaceStore();
+
+  const isSplit = workspaceStore?.activeWorkspace?.type === "split";
   
   const selectedWorkspaceId = 
     workspaceStore?.activeWorkspace?.id || 
@@ -363,12 +365,23 @@ const Transactions = () => {
         
         <div className="lg:flex justify-center shrink-0">
           <div className="px-4 lg:w-3/4 sm:px-6 pt-4 sm:pt-6 pb-0 flex items-center justify-end gap-4 sm:gap-4">
-              <Button onClick={() => setExportModalOpen(true)} variant="outline" className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold border-gray-200 text-gray-600 bg-white">
-                <Download size={16} /> <span className="hidden sm:inline">Export</span>
-              </Button>
-              
-              <Button onClick={() => setShowAddModal(true)} className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
-                <Plus size={16} /> <span className="hidden sm:inline">Add Record</span>
+              {/* Tombol Export kita hide aja kalau split bill, soalnya kurang relevan */}
+              {!isSplit && (
+                <Button onClick={() => setExportModalOpen(true)} variant="outline" className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold border-gray-200 text-gray-600 bg-white">
+                  <Download size={16} /> <span className="hidden sm:inline">Export</span>
+                </Button>
+              )}
+                
+              <Button 
+                onClick={() => {
+                  // LOGIC BARU: Kalau split, langsung buka tab OCR
+                  setAddMode(isSplit ? "ocr" : "manual");
+                  setShowAddModal(true);
+                }} 
+                className="py-2.5 sm:py-2 px-4 rounded-xl text-xs gap-1.5 font-bold shadow-sm">
+                {/* Icon dan teks berubah dinamis */}
+                {isSplit ? <Camera size={16} /> : <Plus size={16} />} 
+                <span className="hidden sm:inline">{isSplit ? "Scan Receipt" : "Add Record"}</span>
               </Button>
           </div>
         </div>
@@ -489,8 +502,10 @@ const Transactions = () => {
             
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
               <h2 className="text-lg font-bold text-text flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 text-primary rounded-lg"><Plus size={18}/></div>
-                Add New Record
+                <div className="p-1.5 bg-primary/10 text-primary rounded-lg">
+                  {isSplit ? <Camera size={18}/> : <Plus size={18}/>}
+                </div>
+                {isSplit ? "Scan Struk Patungan" : "Add New Record"}
               </h2>
               <button 
                 onClick={() => {
@@ -504,7 +519,8 @@ const Transactions = () => {
               </button>
             </div>
 
-            {ocrState === "upload" && (
+            {/* LOGIC BARU: Tambahin && !isSplit biar tab ini hilang kalau lagi di mode Split Bill */}
+            {ocrState === "upload" && !isSplit && (
               <div className="px-6 pt-5 shrink-0">
                 <div className="flex bg-gray-100 p-1 rounded-xl w-full relative">
                   <button 

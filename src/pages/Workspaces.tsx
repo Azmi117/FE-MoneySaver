@@ -279,85 +279,87 @@ const Workspaces = () => {
           </div>
         </div>
 
-        <div className="bg-surface lg:border lg:border-gray-100 rounded-2xl lg:rounded-3xl p-6 lg:shadow-sm mb-2">
-          <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-green-50 text-green-600 rounded-xl shrink-0"><TrendingUp size={20} /></div>
-              <div>
-                <h3 className="font-bold text-text text-lg">Financial Summary</h3>
-                <p className="hidden lg:flex text-xs text-gray-500">Monitor budget & tabungan lu</p>
-              </div>
-            </div>
-            {isOwner && (
-              <Button onClick={() => setShowTargetModal(true)} className="py-2 px-3 rounded-xl text-xs font-bold shrink-0 h-[36px] gap-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm">
-                 Set Target
-              </Button>
-            )}
-          </div>
-          {summary ? (
-            <div className="flex flex-col gap-5">
-              
-              {/* --- BUDGET LIMIT RENDER --- */}
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-end">
-                  <span className="text-sm font-bold text-gray-700">Budget Spent</span>
-                  <div className="text-right">
-                    <span className="text-xs text-gray-500 font-medium">Rp {summary.budget_spent?.toLocaleString('id-ID')} / </span>
-                    <span className="text-sm font-bold text-gray-800">Rp {summary.budget_limit?.toLocaleString('id-ID')}</span>
-                  </div>
+        {ws.type !== "split" && (
+          <div className="bg-surface lg:border lg:border-gray-100 rounded-2xl lg:rounded-3xl p-6 lg:shadow-sm mb-2">
+            <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-green-50 text-green-600 rounded-xl shrink-0"><TrendingUp size={20} /></div>
+                <div>
+                  <h3 className="font-bold text-text text-lg">Financial Summary</h3>
+                  <p className="hidden lg:flex text-xs text-gray-500">Monitor budget & tabungan lu</p>
                 </div>
+              </div>
+              {isOwner && (
+                <Button onClick={() => setShowTargetModal(true)} className="py-2 px-3 rounded-xl text-xs font-bold shrink-0 h-[36px] gap-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm">
+                  Set Target
+                </Button>
+              )}
+            </div>
+            {summary ? (
+              <div className="flex flex-col gap-5">
                 
-                {/* LOGIC CEK: Kalau budget_limit ada ( > 0 ), baru tampilkan progress bar */}
-                {summary.budget_limit && summary.budget_limit > 0 ? (
-                  <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all", (summary.budget_spent / summary.budget_limit) > 0.8 ? "bg-red-500" : "bg-primary")} 
-                         style={{ width: `${Math.min((summary.budget_spent / summary.budget_limit) * 100, 100)}%` }}>
+                {/* --- BUDGET LIMIT RENDER --- */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-end">
+                    <span className="text-sm font-bold text-gray-700">Budget Spent</span>
+                    <div className="text-right">
+                      <span className="text-xs text-gray-500 font-medium">Rp {summary.budget_spent?.toLocaleString('id-ID')} / </span>
+                      <span className="text-sm font-bold text-gray-800">Rp {summary.budget_limit?.toLocaleString('id-ID')}</span>
                     </div>
                   </div>
-                ) : (
-                  <div className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                    Budget belum di-set
-                  </div>
-                )}
-              </div>
-
-              {/* --- SAVINGS TARGET RENDER --- */}
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-end">
-                  <span className="text-sm font-bold text-gray-700">Savings Target</span>
-                  <div className="text-right">
-                    <span className="text-xs text-gray-500 font-medium">Rp {summary.savings_current?.toLocaleString('id-ID')} / </span>
-                    <span className="text-sm font-bold text-gray-800">Rp {summary.savings_target?.toLocaleString('id-ID')}</span>
-                  </div>
+                  
+                  {/* LOGIC CEK: Kalau budget_limit ada ( > 0 ), baru tampilkan progress bar */}
+                  {summary.budget_limit && summary.budget_limit > 0 ? (
+                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all", (summary.budget_spent / summary.budget_limit) > 0.8 ? "bg-red-500" : "bg-primary")} 
+                          style={{ width: `${Math.min((summary.budget_spent / summary.budget_limit) * 100, 100)}%` }}>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                      Budget belum di-set
+                    </div>
+                  )}
                 </div>
 
-                {/* LOGIC CEK: Kalau savings_target ada ( > 0 ), baru tampilkan progress bar */}
-                {summary.savings_target && summary.savings_target > 0 ? (
-                  <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full transition-all" 
-                         style={{ width: `${Math.min((summary.savings_current / summary.savings_target) * 100, 100)}%` }}>
+                {/* --- SAVINGS TARGET RENDER --- */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-end">
+                    <span className="text-sm font-bold text-gray-700">Savings Target</span>
+                    <div className="text-right">
+                      <span className="text-xs text-gray-500 font-medium">Rp {summary.savings_current?.toLocaleString('id-ID')} / </span>
+                      <span className="text-sm font-bold text-gray-800">Rp {summary.savings_target?.toLocaleString('id-ID')}</span>
                     </div>
                   </div>
-                ) : (
-                  <div className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                    Target nabung belum di-set
-                  </div>
-                )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Income</p>
-                  <p className="text-sm font-bold text-green-600">Rp {summary.total_income?.toLocaleString('id-ID')}</p>
+                  {/* LOGIC CEK: Kalau savings_target ada ( > 0 ), baru tampilkan progress bar */}
+                  {summary.savings_target && summary.savings_target > 0 ? (
+                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-green-500 rounded-full transition-all" 
+                          style={{ width: `${Math.min((summary.savings_current / summary.savings_target) * 100, 100)}%` }}>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                      Target nabung belum di-set
+                    </div>
+                  )}
                 </div>
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Expense</p>
-                  <p className="text-sm font-bold text-red-600">Rp {summary.total_expense?.toLocaleString('id-ID')}</p>
+
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Income</p>
+                    <p className="text-sm font-bold text-green-600">Rp {summary.total_income?.toLocaleString('id-ID')}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Expense</p>
+                    <p className="text-sm font-bold text-red-600">Rp {summary.total_expense?.toLocaleString('id-ID')}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : <p className="text-xs text-gray-400 text-center py-4">Belum ada data summary.</p>}
-        </div>
+            ) : <p className="text-xs text-gray-400 text-center py-4">Belum ada data summary.</p>}
+          </div>
+        )}
 
         <div className="bg-surface lg:border lg:border-gray-100 rounded-2xl lg:rounded-3xl p-6 lg:shadow-sm mb-6">
           <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-4">

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { 
   CheckCircle2, XCircle, Clock, Inbox, ChevronLeft, ChevronRight, 
   CreditCard, Send, ArrowRightLeft, MessageSquare, Briefcase,
-  Search, Filter
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
@@ -379,12 +378,18 @@ const PendingApprovals = () => {
                   onChange={(e) => setModalWorkspaceId(e.target.value)}
                 >
                   <option value="" disabled>-- Pilih Workspace Tujuan --</option>
-                  {workspaces.map(ws => (
+                  
+                  {/* 🚀 LOGIC BARU: Filter out split bill workspaces */}
+                  {workspaces
+                    .filter(ws => ws.type !== "split")
+                    .map(ws => (
                     <option key={ws.id || ws.ID} value={ws.id || ws.ID}>{ws.name}</option>
                   ))}
                 </select>
-                {workspaces.length === 0 && (
-                  <p className="text-[11px] text-red-500 mt-1">Lu belum punya workspace aktif cuy, bikin dulu di menu utama.</p>
+
+                {/* 🚀 LOGIC BARU: Kasih warning kalau dia cuma punya split bill dan gak punya budgeting */}
+                {workspaces.filter(ws => ws.type !== "split").length === 0 && (
+                  <p className="text-[11px] text-red-500 mt-1">Lu belum punya workspace tipe Budgeting cuy, bikin dulu di menu utama.</p>
                 )}
               </div>
 
@@ -399,7 +404,7 @@ const PendingApprovals = () => {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={!modalWorkspaceId || workspaces.length === 0}
+                  disabled={!modalWorkspaceId || workspaces.filter(ws => ws.type !== "split").length === 0}
                   className="text-xs font-bold bg-green-500 hover:bg-green-600 shadow-sm"
                 >
                   Save Transaksi
