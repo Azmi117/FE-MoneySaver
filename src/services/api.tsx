@@ -43,9 +43,15 @@ api.interceptors.response.use(
         isRefreshing = false;
         // INI PENTING: Nolak semua request yang ngantri karena refresh gagal
         processQueue(refreshError, null);
+
+        // 🚀 LOGIC BARU: Cek posisi URL sekarang biar gak infinite loop
+        const currentPath = window.location.pathname;
+        const isAuthPage = ['/login', '/register', '/forgot-password', '/verify-otp', '/reset-password'].includes(currentPath);
         
+        if (!isAuthPage) {
+          window.location.href = '/login';
+        }
         // Baru kita nendang ke login
-        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

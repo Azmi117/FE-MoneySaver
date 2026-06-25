@@ -12,16 +12,19 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import VerifyOTP from "./pages/auth/VerifyOTP";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login/>}/>
-        <Route path="/register" element={<Register/>}/>
-        <Route path="/forgot-password" element={<ForgotPassword/>}/>
-        <Route path="/verify-otp" element={<VerifyOTP/>}/>
-        <Route path="/reset-password" element={<ResetPassword/>}/>
+        <Route element={<GuestRoute />}>
+          <Route path="/login" element={<Login/>}/>
+          <Route path="/register" element={<Register/>}/>
+          <Route path="/forgot-password" element={<ForgotPassword/>}/>
+          <Route path="/verify-otp" element={<VerifyOTP/>}/>
+          <Route path="/reset-password" element={<ResetPassword/>}/>
+        </Route>
         {/* Halaman yang butuh Sidebar dan Bottom Nav Global */}
         <Route element={<ProtectedRoute/>}>
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
