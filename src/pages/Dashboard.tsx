@@ -29,6 +29,10 @@ const Dashboard = () => {
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [modalPage, setModalPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   // ==========================================
   // 1. FETCH WORKSPACES 
@@ -91,8 +95,7 @@ const Dashboard = () => {
 
       setIsSummaryLoading(true);
       try {
-        const res = await workspaceService.getSummary(currentWorkspaceId);
-        // Sesuaikan dengan struktur JSON dari Golang lu
+        const res = await workspaceService.getSummary(currentWorkspaceId, selectedPeriod);
         const summaryData = res.data?.data || res.data || null;
         setWorkspaceSummary(summaryData);
       } catch (error) {
@@ -103,7 +106,7 @@ const Dashboard = () => {
     };
 
     fetchSummary();
-  }, [currentWorkspaceId]);
+  }, [currentWorkspaceId, selectedPeriod]); 
 
   // ==========================================
   // LOGIC MODAL "SEE ALL"
@@ -163,6 +166,13 @@ const Dashboard = () => {
     }
   };
 
+  const formatPeriodDisplay = (periodString: string) => {
+    if (!periodString) return "";
+    const [year, month] = periodString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setTimeout(() => {
@@ -175,127 +185,141 @@ const Dashboard = () => {
   return (
     <>
       <div className="flex-1 flex flex-col h-full overflow-y-auto relative">
-        <main className="p-6 max-w-6xl mx-auto w-full flex flex-col gap-6 pb-28 lg:pb-10">
+        <main className="p-6 max-w-6xl mx-auto w-full flex flex-col gap-4 pb-28 lg:pb-10">
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {isSplit ? (
-              <div className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl p-8 text-white shadow-md xl:col-span-3 flex flex-col justify-center items-start relative overflow-hidden">
-                {/* BANNER KHUSUS SPLIT BILL (GANTIIN 3 CARD) */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-                <h2 className="text-3xl font-bold mb-3 z-10 flex items-center gap-3">
-                  🍕 Split Bill Mode
-                </h2>
-                <p className="text-white/90 max-w-2xl text-sm leading-relaxed z-10 mb-6">
-                  Workspace ini didesain khusus untuk mencatat patungan bareng temen-temen lu. Sistem The Guardian (Budgeting & Saving) dinonaktifkan di sini.
-                </p>
-                <Button onClick={() => navigate('/split-bills')} className="bg-white text-orange-600 hover:bg-gray-50 z-10 rounded-xl font-bold px-6">
-                  Kelola Patungan Sekarang
-                </Button>
-              </div>
-            ) : (
-            <>
-              {/* CARD 1: TOTAL BALANCE */}
-              <div className="bg-primary rounded-3xl p-6 text-white shadow-md relative overflow-hidden xl:col-span-1">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                <p className="text-white/80 text-sm font-medium mb-1">Total Balance</p>
-                <h2 className="text-3xl font-bold mb-6">
-                  {isSummaryLoading ? "Loading..." : formatCurrency(workspaceSummary?.total_balance || 0)}
-                </h2>
-                
-                <div className="flex items-center justify-between border-t border-white/20 pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"><TrendingDown size={16} /></div>
-                    <div>
-                      <p className="text-white/70 text-xs">Income</p>
-                      <p className="font-semibold text-sm">{isSummaryLoading ? "-" : formatCurrency(workspaceSummary?.total_income || 0)}</p>
-                    </div>
-                  </div>
-                  <div className="w-px h-8 bg-white/20 hidden sm:block"></div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"><TrendingUp size={16} /></div>
-                    <div>
-                      <p className="text-white/70 text-xs">Expense</p>
-                      <p className="font-semibold text-sm">{isSummaryLoading ? "-" : formatCurrency(workspaceSummary?.total_expense || 0)}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 2: SAVINGS TARGET */}
-              <div className="bg-surface rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center xl:col-span-1">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center">
-                      <Target size={20} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-text">Savings Target</h3>
-                      <p className="text-xs text-gray-500">Period: May 2026</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* LOGIC BARU DI SINI */}
-                {workspaceSummary?.savings_target > 0 ? (
-                  <>
-                    <div className="flex justify-between items-end mb-2 text-sm font-semibold">
-                      <span className="text-text">{formatCurrency(workspaceSummary?.savings_current || 0)}</span>
-                      <span className="text-gray-400 text-xs">of {formatCurrency(workspaceSummary?.savings_target || 0)}</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full transition-all duration-500" 
-                        style={{ width: `${Math.min(Math.round((workspaceSummary.savings_current / workspaceSummary.savings_target) * 100), 100)}%` }}
-                      ></div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
-                    <p className="text-xs text-gray-400 mb-2">Belum ada target nabung</p>
-                    <button onClick={() => navigate('/workspaces')} className="text-xs font-bold text-primary hover:underline">Set Target</button>
-                  </div>
-                )}
-              </div>
-
-              {/* CARD 3: BUDGET LIMIT */}
-              <div className="bg-surface rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center xl:col-span-1">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-50 text-accent flex items-center justify-center">
-                      <PieChart size={20} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-text">Budget Limit</h3>
-                      <p className="text-xs text-gray-500">Period: May 2026</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* LOGIC BARU DI SINI */}
-                {workspaceSummary?.budget_limit > 0 ? (
-                  <>
-                    <div className="flex justify-between items-end mb-2 text-sm font-semibold">
-                      <span className="text-text">{formatCurrency(workspaceSummary?.budget_spent || 0)} Spent</span>
-                      <span className="text-gray-400 text-xs">Limit {formatCurrency(workspaceSummary?.budget_limit || 0)}</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-accent rounded-full transition-all duration-500" 
-                        style={{ width: `${Math.min(Math.round((workspaceSummary.budget_spent / workspaceSummary.budget_limit) * 100), 100)}%` }}
-                      ></div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
-                    <p className="text-xs text-gray-400 mb-2">Belum ada batas budget</p>
-                    <button onClick={() => navigate('/workspaces')} className="text-xs font-bold text-accent hover:underline">Set Budget</button>
-                  </div>
-                )}
-              </div>
-            </>
-            )}
+          <div className="flex flex-col gap-2">
             
-          </div>
+            {!isSplit && (
+              <div className="flex justify-end -mt-4 mb-2"> 
+                <div className="flex items-center gap-2 bg-surface border border-gray-100 px-3 py-1.5 rounded-xl shadow-sm shrink-0"> 
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Bulan:</span>
+                  <input 
+                    type="month" 
+                    value={selectedPeriod}
+                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                    className="bg-transparent text-gray-800 text-xs font-bold focus:outline-none cursor-pointer"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* BLOK KARTU TETEP SAMA PERSIS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {isSplit ? (
+                <div className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl p-8 text-white shadow-md xl:col-span-3 flex flex-col justify-center items-start relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                  <h2 className="text-3xl font-bold mb-3 z-10 flex items-center gap-3">
+                    🍕 Split Bill Mode
+                  </h2>
+                  <p className="text-white/90 max-w-2xl text-sm leading-relaxed z-10 mb-6">
+                    Workspace ini didesain khusus untuk mencatat patungan bareng temen-temen lu. Sistem The Guardian (Budgeting & Saving) dinonaktifkan di sini.
+                  </p>
+                  <Button onClick={() => navigate('/split-bills')} className="bg-white text-orange-600 hover:bg-gray-50 z-10 rounded-xl font-bold px-6">
+                    Kelola Patungan Sekarang
+                  </Button>
+                </div>
+              ) : (
+              <>
+                {/* CARD 1: TOTAL BALANCE */}
+                <div className="bg-primary rounded-3xl p-6 text-white shadow-md relative overflow-hidden xl:col-span-1">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                  <p className="text-white/80 text-sm font-medium mb-1">Total Balance</p>
+                  <h2 className="text-3xl font-bold mb-6">
+                    {isSummaryLoading ? "Loading..." : formatCurrency(workspaceSummary?.total_balance || 0)}
+                  </h2>
+                  
+                  <div className="flex items-center justify-between border-t border-white/20 pt-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"><TrendingDown size={16} /></div>
+                      <div>
+                        <p className="text-white/70 text-xs">Income</p>
+                        <p className="font-semibold text-sm">{isSummaryLoading ? "-" : formatCurrency(workspaceSummary?.total_income || 0)}</p>
+                      </div>
+                    </div>
+                    <div className="w-px h-8 bg-white/20 hidden sm:block"></div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"><TrendingUp size={16} /></div>
+                      <div>
+                        <p className="text-white/70 text-xs">Expense</p>
+                        <p className="font-semibold text-sm">{isSummaryLoading ? "-" : formatCurrency(workspaceSummary?.total_expense || 0)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 2: SAVINGS TARGET */}
+                <div className="bg-surface rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center xl:col-span-1">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center">
+                        <Target size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-text">Savings Target</h3>
+                        <p className="text-xs text-gray-500">Period: {formatPeriodDisplay(selectedPeriod)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {workspaceSummary?.savings_target > 0 ? (
+                    <>
+                      <div className="flex justify-between items-end mb-2 text-sm font-semibold">
+                        <span className="text-text">{formatCurrency(workspaceSummary?.savings_current || 0)}</span>
+                        <span className="text-gray-400 text-xs">of {formatCurrency(workspaceSummary?.savings_target || 0)}</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary rounded-full transition-all duration-500" 
+                          style={{ width: `${Math.min(Math.round((workspaceSummary.savings_current / workspaceSummary.savings_target) * 100), 100)}%` }}
+                        ></div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
+                      <p className="text-xs text-gray-400 mb-2">Belum ada target nabung</p>
+                      <button onClick={() => navigate('/workspaces')} className="text-xs font-bold text-primary hover:underline">Set Target</button>
+                    </div>
+                  )}
+                </div>
+
+                {/* CARD 3: BUDGET LIMIT */}
+                <div className="bg-surface rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center xl:col-span-1">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-orange-50 text-accent flex items-center justify-center">
+                        <PieChart size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-text">Budget Limit</h3>
+                        <p className="text-xs text-gray-500">Period: {formatPeriodDisplay(selectedPeriod)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {workspaceSummary?.budget_limit > 0 ? (
+                    <>
+                      <div className="flex justify-between items-end mb-2 text-sm font-semibold">
+                        <span className="text-text">{formatCurrency(workspaceSummary?.budget_spent || 0)} Spent</span>
+                        <span className="text-gray-400 text-xs">Limit {formatCurrency(workspaceSummary?.budget_limit || 0)}</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-accent rounded-full transition-all duration-500" 
+                          style={{ width: `${Math.min(Math.round((workspaceSummary.budget_spent / workspaceSummary.budget_limit) * 100), 100)}%` }}
+                        ></div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-4 border-2 border-dashed border-gray-100 rounded-2xl text-center">
+                      <p className="text-xs text-gray-400 mb-2">Belum ada batas budget</p>
+                      <button onClick={() => navigate('/workspaces')} className="text-xs font-bold text-accent hover:underline">Set Budget</button>
+                    </div>
+                  )}
+                </div>
+              </>
+              )}
+            </div>
+          </div> {/* Akhir dari Wrapper Picker + Card */}
 
           {/* ================= RECENT TRANSACTIONS ================= */}
           <div className="bg-surface rounded-3xl shadow-sm border border-gray-100 p-2 sm:p-6 flex flex-col min-h-[300px]">
