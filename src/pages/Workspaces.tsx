@@ -10,6 +10,7 @@ import Input from "@/components/ui/Input";
 import { useAuthStore } from "@/store/useAuthStore";
 import { workspaceService } from "@/services/workspaceService";
 import { categoryService } from "@/services/categoryService";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 const iconMap: Record<string, any> = {
   'ice-cream': IceCream, 'snack': Cookie, 'rice': Utensils, 'money': Banknote, 'code': Code, 'star': Star, 'fa-film': Film,
@@ -33,7 +34,8 @@ const Workspaces = () => {
   const [members, setMembers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const { activeWorkspace, setActiveWorkspace } = useWorkspaceStore();
+  const selectedId = activeWorkspace ? (activeWorkspace.id || activeWorkspace.ID) : null;
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
@@ -60,7 +62,9 @@ const Workspaces = () => {
         if (wsRes?.data) {
           const fetchedWorkspaces = wsRes.data;
           setWorkspaces(fetchedWorkspaces);
-          if (fetchedWorkspaces.length > 0) setSelectedId(fetchedWorkspaces[0].id || fetchedWorkspaces[0].ID);
+          if (fetchedWorkspaces.length > 0 && !activeWorkspace) {
+            setActiveWorkspace(fetchedWorkspaces[0]);
+          }
         }
         if (invRes?.data) setInvitations(invRes.data);
       } catch (error) { console.error("Gagal narik data awal:", error); }
@@ -98,7 +102,7 @@ const Workspaces = () => {
       const res = await workspaceService.createWorkspace({ name: newWorkspaceName, type: newWorkspaceType });
       if(res?.data) {
          setWorkspaces([...workspaces, res.data]);
-         setSelectedId(res.data.id || res.data.ID);
+         setActiveWorkspace(res.data);
       }
       setShowCreateModal(false); setNewWorkspaceName(""); setNewWorkspaceType("budgeting");
       alert("Berhasil bikin workspace!");
@@ -122,8 +126,8 @@ const Workspaces = () => {
       await workspaceService.deleteWorkspace(selectedId);
       const sisaWorkspaces = workspaces.filter(ws => (ws.id || ws.ID) !== selectedId);
       setWorkspaces(sisaWorkspaces);
-      if (sisaWorkspaces.length > 0) setSelectedId(sisaWorkspaces[0].id || sisaWorkspaces[0].ID);
-      else setSelectedId(null);
+      if (sisaWorkspaces.length > 0) setActiveWorkspace(sisaWorkspaces[0]);
+      else setActiveWorkspace(null as any);
       if (showMobileDrawer) setShowMobileDrawer(false);
     } catch (error) { alert("Gagal menghapus workspace"); }
   };
@@ -194,7 +198,8 @@ const Workspaces = () => {
   };
 
   const handleSelectWorkspace = (id: number) => {
-    setSelectedId(id);
+    const foundWs = workspaces.find(ws => (ws.id || ws.ID) === id);
+    if (foundWs) setActiveWorkspace(foundWs);
     if (window.innerWidth < 1024) setShowMobileDrawer(true);
   };
 
