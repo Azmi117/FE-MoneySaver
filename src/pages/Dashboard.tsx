@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   TrendingUp, TrendingDown, Target,
-  PieChart, CheckCircle, Clock, Briefcase, ChevronRight,
+  PieChart, CheckCircle, Clock,
   ArrowDownRight, CreditCard, X, Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";

@@ -15,7 +15,7 @@ const PendingApprovals = () => {
   const [isActionLoading, setIsActionLoading] = useState<number | null>(null);
   
   // STATE SEARCH & FILTER
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
 
   // STATE MODAL APPROVAL
