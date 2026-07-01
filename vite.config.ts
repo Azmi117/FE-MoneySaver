@@ -14,4 +14,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src")
     },
   },
+  // --- KOREKSI DI SINI: PAKE TRUE (BOOLEAN) BIAR TYPE-NYA MATCH ---
+  server: {
+    port: 5173,
+    allowedHosts: true 
+  }
 })
