@@ -132,7 +132,7 @@ const Login = () => {
           </div>
           <div className="flex flex-col gap-4">
             {/* Kalau mau pake SSO lu, ganti button ini jadi link ke href="http://localhost:8080/api/v1/auth/sso/google/login" */}
-            <a href="http://localhost:8080/api/v1/auth/sso/google/login" className="w-full">
+            <a href="https://be-money-saver.velto.id/api/v1/auth/sso/google/login" className="w-full">
               <Button variant="outline" fullWidth className="gap-3 text-text border-gray-300">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>

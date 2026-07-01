@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api/v1',
+  baseURL: 'https://be-money-saver.velto.id/api/v1',
   withCredentials: true,
 });
 
@@ -20,6 +20,12 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // 🚀 LOGIC BARU (ANTI DEADLOCK): 
+    // Kalau yang error 401 adalah request ke /auth/refresh itu sendiri, langsung reject aja!
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
 
     // Cek kalau error 401 dan bukan request ke login/refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -41,20 +47,20 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        // INI PENTING: Nolak semua request yang ngantri karena refresh gagal
         processQueue(refreshError, null);
 
-        // 🚀 LOGIC BARU: Cek posisi URL sekarang biar gak infinite loop
+        // Cek posisi URL sekarang biar gak infinite loop redirect
         const currentPath = window.location.pathname;
         const isAuthPage = ['/login', '/register', '/forgot-password', '/verify-otp', '/reset-password'].includes(currentPath);
         
         if (!isAuthPage) {
           window.location.href = '/login';
         }
-        // Baru kita nendang ke login
+        
         return Promise.reject(refreshError);
       }
     }
+    
     return Promise.reject(error);
   }
 );
