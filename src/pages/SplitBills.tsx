@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   CheckCircle, Search, ArrowUpRight, ArrowDownLeft, Check, ShoppingBag, 
   ArrowRight, X, List, Scissors, Receipt
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/Button";
-import api from "@/services/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { workspaceService } from "@/services/workspaceService";
@@ -48,12 +47,6 @@ const SplitBills = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // STATE MODAL GLOBAL OCR
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [addMode, setAddMode] = useState<"manual" | "ocr">("manual");
-  const [ocrMethod, setOcrMethod] = useState<"hybrid" | "alt">("hybrid");
-  const [ocrState, setOcrState] = useState<"upload" | "scanning" | "review">("upload");
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [splitWorkspaces, setSplitWorkspaces] = useState<any[]>([]);
 
   // ==========================================
