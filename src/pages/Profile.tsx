@@ -5,10 +5,11 @@ import { useEffect, useState, useRef } from "react";
 import Button from "@/components/ui/Button";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLogout } from "../hooks/useLogout";
 
 const Profile = () => {
   const authStore = useAuthStore();
-  
+  const handleLogout = useLogout();
   const [profileData, setProfileData] = useState<any>(null);
   const [isGmailEnabled, setIsGmailEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -210,10 +211,17 @@ const Profile = () => {
               </div>
 
               <div className="lg:col-span-1 flex flex-col gap-6">
-                <div className="bg-surface rounded-3xl border border-red-100 shadow-sm p-6 bg-red-50/30">
-                  <h3 className="font-bold text-danger mb-2">Danger Zone</h3>
-                  <p className="text-xs text-gray-500 mb-4 leading-relaxed">Permanently delete your account and all data. Cannot be undone.</p>
-                  <Button variant="outline" className="w-full py-2.5 rounded-xl border-red-200 text-danger hover:bg-danger hover:text-white font-bold text-sm">Delete Account</Button>
+                {/* Logout Zone: Hanya muncul di mobile/tablet (lg:hidden) */}
+                <div className="block lg:hidden bg-surface rounded-3xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="font-bold text-text mb-2">Account Session</h3>
+                  <p className="text-xs text-gray-500 mb-4 leading-relaxed">Keluar dari akun Money Saver lu di perangkat ini.</p>
+                  <Button 
+                    onClick={handleLogout}
+                    variant="outline" 
+                    className="w-full py-2.5 rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 font-bold text-sm"
+                  >
+                    Logout
+                  </Button>
                 </div>
               </div>
             </div>
